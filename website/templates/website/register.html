@@ -1,0 +1,34 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Register | SecureBank{% endblock %}
+
+{% block captcha %}
+<script src='https://www.google.com/recaptcha/api.js'></script>
+{% endblock %}
+
+{% block content %}
+    <h2>Register</h2>
+
+    <div class="padding-bottom-100">
+        <div class="container">
+            <div class="magazi-forms">
+                <div class="current" id="login-tab">
+                    <form class="padding-bottom-75" method="post" action="{% url 'register' %}">
+                        {% csrf_token %}
+                        <input type="text" name="username" placeholder="Username" maxlength="30" required id="id_username" />
+                        <input type="text" name="first_name" placeholder="First Name" maxlength="30" required id="id_first_name" />
+                        <input type="text" name="last_name" placeholder="Last Name" maxlength="30" required id="id_last_name" />
+                        <input type="email" name="email_address" placeholder="Email" required id="id_email_address" />
+                        <input type="password" name="password" placeholder="Password" maxlength="20" required id="id_password" />
+                        <input type="text" name="address" placeholder="Address" maxlength="100" required id="id_address" />
+                        <input type="text" name="contact" placeholder="Contact" maxlength="15" required id="id_contact" />
+                        <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+                        <button type="submit" class="send-btn">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+ 

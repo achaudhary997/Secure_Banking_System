@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 import requests
-from .forms import LoginForm
-from .models import Transaction
+from .forms import LoginForm, RegisterForm
+from .models import Transaction, Profile
+from django.contrib.auth.models import User
 
 
 def index(request):
@@ -11,44 +12,69 @@ def index(request):
 def login_user(request):
     if not request.user.is_authenticated:
         if request.method == "POST":
-            recaptchaResponse = request.POST.get('g-recaptcha-response')
-            # print(reca)
-            url = 'https://www.google.com/recaptcha/api/siteverify'
-            data = {
-                'secret' : '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
-                'response' : recaptchaResponse
-            }
-            r = requests.post(url, data=data)
-            result = r.json()
-            if result['success']:
-                username = request.POST.get('username')
-                password = request.POST.get('password')
+            login_form = LoginForm(request.POST)
+            if login_form.is_valid():  
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                if recaptcha_response:
+                    url = 'https://www.google.com/recaptcha/api/siteverify'
+                    data = {
+                        'secret' : '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'response' : recaptcha_response
+                    }
+                    r = requests.post(url, data=data)
+                    result = r.json()
+                    if result['success']:
+                        username = login_form.cleaned_data['username']
+                        password = login_form.cleaned_data['password']
 
-                user = authenticate(request, username=username, password=password)
+                        user = authenticate(request, username=username, password=password)
 
-                if user is not None:
-                    login(request, user)
-                    return redirect('home')
-                return render(request, 'website/login.html')
-            else:
-                return render(request, 'website/login.html')
-
-
-            
+                        if user is not None:
+                            login(request, user)
+                            return redirect('home')
+                        return render(request, 'website/login.html')
+                    else:
+                        return render(request, 'website/login.html')
         return render(request, 'website/login.html', context=None)
     else:
         return render(request, 'website/index.html', context=None)
 
 def register_user(request):
+    form = RegisterForm
     if not request.user.is_authenticated:
         if request.method == "POST":
-            address = request.POST.get('address')
-            # username = request.POST.get('username')  already there
-            phoneNum = request.POST.get('phoneNum')
-            plaintextPassword = request.POST.get('password') #change to MD5
+            register_form = RegisterForm(request.POST)
+            if register_form.is_valid():
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                if recaptcha_response:
+                    url = 'https://www.google.com/recaptcha/api/siteverify'
+                    data = {
+                        'secret' : '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'response' : recaptcha_response
+                    }
+                    r = requests.post(url, data=data)
+                    result = r.json()
+                    if result['success']:
+                        user = register_form.save()
+                        user.refresh_from_db()
+                        
+                        profile = Profile()
+                        profile.user_id = user.id
+                        profile.address = register_form.cleaned_data['address']
+                        profile.phone_number = register_form.cleaned_data['contact']
+                        profile.save()
 
+                        user.email = register_form.cleaned_data['email_address']
+
+                        user.set_password(register_form.cleaned_data['password'])
+                        user.save()
+                        login(request, user)
+                        return redirect('home')
+                    else:
+                        return render(request, 'website/register.html', context={"form": form})
+        return render(request, 'website/register.html', context={"form": form})
     else:
-        return render(request, 'website/index.html', context=None)
+        return render(request, 'website/index.html')
 
 
 def logout_user(request):

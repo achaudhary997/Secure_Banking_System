@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
 
 def getIFSCCode():
     # TODO generate codes
@@ -13,16 +12,12 @@ def getAccNum():
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/
 # To access the multiple bank detials for a Profile p, just do p.account_set.objects.all() [Need to test this once]
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_profile")
     address = models.TextField(default="NONE", max_length=100)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
-    phone_number = models.CharField(validators=[phone_regex], max_length=14, blank=True) # validators should be a list
+    phone_number = models.CharField(max_length=15, blank=True) # validators should be a list
 
     # Info for KYC
     # Assign common permissions for all types of users
-
-    def __str__(self):
-        return "User: " + self.user.name
 
 class Employee(Profile):
     pass
