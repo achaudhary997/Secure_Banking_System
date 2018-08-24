@@ -5,12 +5,36 @@
 {% block captcha %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
 {% endblock %}
+
 {% block content %}
     <h2>Login</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+
+    <div class="magazi-pages-links bd-bm padding-bottom-60 padding-top-60">
+        <div class="container">
+            <div class="magazi-pgg-links">
+                <ul>
+                    <li><a href="#" title="">Home</a></li>
+                    <li><span>Login</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="padding-bottom-100">
+        <div class="container">
+            <div class="magazi-forms">
+                <div class="current" id="login-tab">
+                    <form class="padding-bottom-75" method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <input class="margin-bottom-50" type="text" name="username" required id="id_username" placeholder="Username">
+                        <input class="margin-bottom-40" type="password" name="password" required id="id_password" placeholder="Password">
+                        <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+                        <button type="submit" class="send-btn">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
+ 

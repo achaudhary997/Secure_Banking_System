@@ -1,0 +1,16 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Login | SecureBank{% endblock %}
+
+{% block captcha %}
+<script src='https://www.google.com/recaptcha/api.js'></script>
+{% endblock %}
+{% block content %}
+    <h2>Transaction</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Initiate Transaction</button>
+    </form>
+    <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+{% endblock %}
