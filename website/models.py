@@ -18,6 +18,5 @@ class Transaction(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     isCritical = models.BooleanField(default=False)
 
-
     def __str__(self):
         return "Transaction: " + self.sender.name + " -> " + self.receiver.name + ": " + str(self.amount) + " INR"
