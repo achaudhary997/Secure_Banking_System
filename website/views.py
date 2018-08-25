@@ -84,15 +84,17 @@ def logout_user(request):
 
 def transact(request):
     form = TransactionForm
-    if not request.user.is_authenticated:
+    if request.user.is_authenticated:
         if request.method == 'POST':
-            form = TransactionForm(request.POST)
-            if form.is_valid():
-                amount = form.cleaned_data['amount']
-                ifsccode = form.cleaned_data['ifsccode']
-                accNum = form.cleaned_data['accNum']
-                bankName = form.cleaned_data['bankName']
-                #recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(bankName=bankName)
+            transact_form = TransactionForm(request.POST)
+            if transact_form.is_valid():
+                amount = transact_form.cleaned_data['amount']
+                ifsccode = transact_form.cleaned_data['ifsccode']
+                accNum = transact_form.cleaned_data['accNum']
+                bankName = transact_form.cleaned_data['bankName']
+
+                recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(bankName=bankName)
+                
                 if recipientAccount is None:
                     # Return some error
                     pass
@@ -122,17 +124,3 @@ def transact(request):
             return render(request, 'website/transact.html', context={'form':form})
     else:
         return render(request, 'website/index.html')
-
-def debitMoney(request):
-    # form = debitMoney
-    if request.method == 'POST':
-        if form.is_valid():
-            amount = form.cleaned_data['amount']
-                                
-
-def creditMoney(request):
-    # form = creditMoney
-    if request.method == 'POST':
-        if form.is_valid():
-            amount = form.cleaned_data['amount']
-            transaction = Transaction.create(amount, request.user, )                                    

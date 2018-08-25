@@ -7,7 +7,7 @@ def getIFSCCode():
 
 def getAccNum():
     # TODO generate number
-    return 'Sexy thing'
+    return 0000
 
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/
 # To access the multiple bank detials for a Profile p, just do p.account_set.objects.all() [Need to test this once]
@@ -27,9 +27,10 @@ class Customer(Profile):
 
 class Account(models.Model):
     ifsccode = models.CharField(default=getIFSCCode, max_length=50)
-    accNumber = models.CharField(default=getAccNum, max_length=50)
+    accNumber = models.IntegerField(default=getAccNum)
     BankName = models.CharField(default="NULL", max_length=50)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    balance = models.FloatField(default=0.0)
 
     def __str__(self):
         return "Account Deatails ifsccode: {}, accNumber: {}, BankName: {}".format(self.ifsccode, self.accNumber, self.BankName)
@@ -55,14 +56,4 @@ class Transaction(models.Model):
     def __str__(self):
         return "Transaction: " + self.sender.name + " -> " + self.receiver.name + ": " + str(self.amount) + " INR"
 
-
-        
-
-
-
-# I will also keep the server running in another terminal just in case you guys need to test some shit, cool?
-# 192.168.65.73:8002
-
-
-# I will also keep the server running in another terminal just in case you guys need to test some shit, cool?
 # 192.168.65.73:8002

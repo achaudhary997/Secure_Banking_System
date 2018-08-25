@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile, Transaction
+from .models import Profile, Transaction, Account
 from django.contrib.auth.models import User
 import re
 
@@ -18,14 +18,28 @@ class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
     password = forms.CharField(max_length=20)
 
-class TransactionForm(forms.ModelForm):
-    amount = forms.FloatField(required=True, min_value=0)
-    ifsccode = forms.CharField(required=True)
-    accNum = forms.IntegerField(required=True)
-    bankName = forms.CharField(required=True)
-    
-    def clean_transaction(self):
-        contact = self.cleaned_data.get('contact')
+class TransactionForm(forms.Form):
+    amount = forms.FloatField(required=True)
+    ifsc_code = forms.CharField(required=True)
+    acc_num = forms.IntegerField(required=True)
+    bank_name = forms.CharField(required=True)
+
+    def clean_acc_num(self):
+        acc_num = self.cleaned_data['acc_num']
+        if acc_num:
+            if acc_num <= 0:
+                raise forms.ValidationError("Invalid Account Number.")
+        else:
+            raise forms.ValidationError("Enter Account Number.")
+        return acc_num
+
+    def clean(self):
+        transaction = self.cleaned_data
+        try:
+            recipientAccount = Account.objects.filter(accNumber=transaction['acc_num']).filter(ifsccode=transaction['ifsc_code']).filter(bankName=transaction['bank_name'])
+        except:
+            raise forms.ValidationError("Account doesn't exist.")
+        return transaction
 
 
 class RegisterForm(forms.ModelForm):

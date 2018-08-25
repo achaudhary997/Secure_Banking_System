@@ -13,10 +13,11 @@
                 <div class="current" id="login-tab">
                     <form class="padding-bottom-75" method="post" action="{% url 'transact' %}">
                         {% csrf_token %}
-                        <input type="text" name="amount" placeholder="Amount" />
-                        <input type="text" name="bankName" placeholder="Bank Name" />
-                        <input type="text" name="accNum" placeholder="Account Number" />
-                        <input type="text" name="ifsccode" placeholder="IFSC Code" />
+
+                        <input type="number" name="amount" step="any" placeholder="Amount" required id="id_amount" />
+                        <input type="text" name="ifsc_code" placeholder="IFSC Code" required id="id_ifsc_code" />
+                        <input type="number" name="acc_num" placeholder="Account Number" required id="id_acc_num" />
+                        <input type="text" name="bank_name" placeholder="Bank Name" required id="id_bank_name" />
                         <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
                         <button type="submit">Initiate Transaction</button>
                     </form>
