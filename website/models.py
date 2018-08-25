@@ -39,7 +39,7 @@ class Transaction(models.Model):
     amount = models.FloatField(default=0.0)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
     #receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receiver")
-    signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator")
+    signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator", default=None)
     recipientAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
     timestamp = models.DateTimeField(auto_now_add=True)
     isCritical = models.BooleanField(default=False)

@@ -7,10 +7,22 @@
 {% endblock %}
 {% block content %}
     <h2>Transaction</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Initiate Transaction</button>
-    </form>
-    <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+    <div class="padding-bottom-100">
+        <div class="container">
+            <div class="magazi-forms">
+                <div class="current" id="login-tab">
+                    <form class="padding-bottom-75" method="post" action="{% url 'transact' %}">
+                        {% csrf_token %}
+                        <input type="text" name="amount" placeholder="Amount" />
+                        <input type="text" name="bankName" placeholder="Bank Name" />
+                        <input type="text" name="accNum" placeholder="Account Number" />
+                        <input type="text" name="ifsccode" placeholder="IFSC Code" />
+                        <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+                        <button type="submit">Initiate Transaction</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 {% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile
+from .models import Profile, Transaction
 from django.contrib.auth.models import User
 import re
 
@@ -17,6 +17,15 @@ class UserProfileForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
     password = forms.CharField(max_length=20)
+
+class TransactionForm(forms.ModelForm):
+    amount = forms.FloatField(required=True, min_value=0)
+    ifsccode = forms.CharField(required=True)
+    accNum = forms.IntegerField(required=True)
+    bankName = forms.CharField(required=True)
+    
+    def clean_transaction(self):
+        contact = self.cleaned_data.get('contact')
 
 
 class RegisterForm(forms.ModelForm):

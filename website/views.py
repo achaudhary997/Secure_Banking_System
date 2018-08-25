@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 import requests
-from .forms import LoginForm, RegisterForm
-from .models import Transaction, Profile
+from .forms import LoginForm, RegisterForm, TransactionForm
+from .models import Transaction, Profile, Account
 from django.contrib.auth.models import User
 
 
@@ -83,20 +83,45 @@ def logout_user(request):
     return render(request, 'website/index.html', context=None)
 
 def transact(request):
-    # form = #transaction form
-    # if request.method == 'POST':
-    #     if form.is_valid():
-    #         amount = form.cleaned_data['amount']
-    #         ifsccode = form.cleaned_data['ifsccode']
-    #         accNum = form.cleaned_data['accNum']
-    #         bankName = form.cleaned_data['bankName']
-    #         # recepientAccount = form.cleaned_data['receiver'] # we won't get the account object directly. We will only get the details
-    #         if float(amount) > 100000:
-    #             isCritical = True
-    #         else:
-    #             isCritical = False
-    #         transaction = Transaction.create(amount, request.user, recepientAccount, isCritical)
-    return render(request, 'website/transact.html')
+    form = TransactionForm
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            form = TransactionForm(request.POST)
+            if form.is_valid():
+                amount = form.cleaned_data['amount']
+                ifsccode = form.cleaned_data['ifsccode']
+                accNum = form.cleaned_data['accNum']
+                bankName = form.cleaned_data['bankName']
+                #recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(bankName=bankName)
+                if recipientAccount is None:
+                    # Return some error
+                    pass
+                if float(amount) > 100000:
+                    isCritical = True
+                else:
+                    isCritical = False
+                
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                if recaptcha_response:
+                    url = 'https://www.google.com/recaptcha/api/siteverify'
+                    data = {
+                        'secret': '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'response': recaptcha_response
+                    }
+                    r = requests.post(url, data=data)
+                    result = r.json()
+                    if result['success']:
+                        transaction = Transaction.create(   amount=amount, sender=request.user, 
+                                                            recipientAccount=recipientAccount, 
+                                                            isCritical=isCritical)
+                        transaction.save()
+                        return render(request, 'website/transact.html')
+                    else:
+                        return render(request, 'website/transact.html', context={"form": form})
+        else:
+            return render(request, 'website/transact.html', context={'form':form})
+    else:
+        return render(request, 'website/index.html')
 
 def debitMoney(request):
     # form = debitMoney
