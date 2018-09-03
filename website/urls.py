@@ -14,4 +14,5 @@ urlpatterns = [
     # TRANSACTION URLS
 
     path('transact', views.transact, name="transact")
+
 ]

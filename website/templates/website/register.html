@@ -15,6 +15,22 @@
                 <div class="current" id="login-tab">
                     <form class="padding-bottom-75" method="post" action="{% url 'register' %}">
                         {% csrf_token %}
+
+                        {% if form.errors %}
+                            {% for field in forms %}
+                                {% if field.errors %}
+                                    {{ field.errors }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
                         <input type="text" name="username" placeholder="Username" maxlength="30" required id="id_username" />
                         <input type="text" name="first_name" placeholder="First Name" maxlength="30" required id="id_first_name" />
                         <input type="text" name="last_name" placeholder="Last Name" maxlength="30" required id="id_last_name" />

@@ -17,7 +17,7 @@
     <body>
         <nav>
             <div class="nav-wrapper">
-                <a href="#" class="brand-logo" style="padding-left:2%;">SecureBank</a>
+                <a href="{% url 'home' %}" class="brand-logo" style="padding-left:2%;">SecureBank</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     {% if not user.is_authenticated %}
                         <li><a href="{% url 'login' %}">Login</a></li>
@@ -25,6 +25,7 @@
                     {% else %}
                         <li><a href="{% url 'transact' %}">Transact</a></li>
                         {% comment %} <li><a href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
+                        
                         <li><a href="{% url 'logout' %}">Logout</a></li>
                     {% endif %}
                 </ul>

@@ -32,15 +32,15 @@ class TransactionForm(forms.Form):
         else:
             raise forms.ValidationError("Enter Account Number.")
         return acc_num
-
+    
     def clean(self):
         transaction = self.cleaned_data
         try:
-            recipientAccount = Account.objects.filter(accNumber=transaction['acc_num']).filter(ifsccode=transaction['ifsc_code']).filter(bankName=transaction['bank_name'])
+            recipientAccount = Account.objects.filter(accNumber=transaction['acc_num']).filter(ifsccode=transaction['ifsc_code']).filter(BankName=transaction['bank_name'])
         except:
             raise forms.ValidationError("Account doesn't exist.")
         return transaction
-
+    
 
 class RegisterForm(forms.ModelForm):
     username = forms.CharField(max_length=20, required=True)

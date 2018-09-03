@@ -4,7 +4,8 @@ import requests
 from .forms import LoginForm, RegisterForm, TransactionForm
 from .models import Transaction, Profile, Account
 from django.contrib.auth.models import User
-
+from django.contrib import messages
+from django.conf import settings
 
 def index(request):
     return render(request, 'website/index.html', context=None)
@@ -23,7 +24,7 @@ def login_user(request):
                     }
                     r = requests.post(url, data=data)
                     result = r.json()
-                    if result['success']:
+                    if result['success'] or not settings.CAPTCHA_VERIFICATION:
                         username = login_form.cleaned_data['username']
                         password = login_form.cleaned_data['password']
 
@@ -32,8 +33,11 @@ def login_user(request):
                         if user is not None:
                             login(request, user)
                             return redirect('home')
+                        else:
+                            messages.error(request, 'Incorrect Username or Password.')                        
                         return render(request, 'website/login.html')
                     else:
+                        messages.error(request, 'Captcha Not Verified.')
                         return render(request, 'website/login.html')
         return render(request, 'website/login.html', context=None)
     else:
@@ -43,8 +47,10 @@ def register_user(request):
     form = RegisterForm
     if not request.user.is_authenticated:
         if request.method == "POST":
+            print("lol1")
             register_form = RegisterForm(request.POST)
             if register_form.is_valid():
+                print("lol2")
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -54,7 +60,7 @@ def register_user(request):
                     }
                     r = requests.post(url, data=data)
                     result = r.json()
-                    if result['success']:
+                    if result['success'] or not settings.CAPTCHA_VERIFICATION:
                         user = register_form.save()
                         user.refresh_from_db()
                         
@@ -64,8 +70,16 @@ def register_user(request):
                         profile.phone_number = register_form.cleaned_data['contact']
                         profile.save()
 
-                        user.email = register_form.cleaned_data['email_address']
-
+                        email = register_form.cleaned_data['email_address']          
+                        try:
+                            match = User.objects.get(email=email)
+                            print(match)
+                            messages.error(request, "User with this email already exists.")
+                            user.delete()
+                            return render(request, 'website/register.html', context={"form": form})                            
+                        except User.DoesNotExist:
+                            pass
+                        user.email = email
                         user.set_password(register_form.cleaned_data['password'])
                         user.save()
                         login(request, user)
@@ -86,22 +100,22 @@ def transact(request):
     form = TransactionForm
     if request.user.is_authenticated:
         if request.method == 'POST':
+            print ("inside post")
             transact_form = TransactionForm(request.POST)
             if transact_form.is_valid():
                 amount = transact_form.cleaned_data['amount']
-                ifsccode = transact_form.cleaned_data['ifsccode']
-                accNum = transact_form.cleaned_data['accNum']
-                bankName = transact_form.cleaned_data['bankName']
+                ifsccode = transact_form.cleaned_data['ifsc_code']
+                accNum = transact_form.cleaned_data['acc_num']
+                bankName = transact_form.cleaned_data['bank_name']
 
-                recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(bankName=bankName)
-                
+                recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(BankName=bankName)[0]
+                print (type(recipientAccount).__name__)
                 if recipientAccount is None:
-                    # Return some error
-                    pass
+                    return render(request, 'website/index.html')
                 if float(amount) > 100000:
-                    isCritical = True
+                    isValidated = False
                 else:
-                    isCritical = False
+                    isValidated = True
                 
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
@@ -115,12 +129,13 @@ def transact(request):
                     if result['success']:
                         transaction = Transaction.create(   amount=amount, sender=request.user, 
                                                             recipientAccount=recipientAccount, 
-                                                            isCritical=isCritical)
+                                                            isValidated=isValidated
+                                                        )
                         transaction.save()
                         return render(request, 'website/transact.html')
                     else:
                         return render(request, 'website/transact.html', context={"form": form})
-        else:
-            return render(request, 'website/transact.html', context={'form':form})
+
+        return render(request, 'website/transact.html', context={'form':form})
     else:
         return render(request, 'website/index.html')

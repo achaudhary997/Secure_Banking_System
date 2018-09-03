@@ -40,20 +40,19 @@ class Transaction(models.Model):
     amount = models.FloatField(default=0.0)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
     #receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receiver")
-    signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator", default=None)
+    #signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator", default=None)
     recipientAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
     timestamp = models.DateTimeField(auto_now_add=True)
-    isCritical = models.BooleanField(default=False)
     isValidated = models.BooleanField(default=False)
     
     @classmethod
-    def create(self, amount, sender, recipientAccount, isCritical):
-        transaction = self(amount=amount, sender=sender, recipientAccount=recipientAccount, isCritical=isCritical)
-        # store in DB or whatever, will use a queue of pending transactions
+    def create(self, amount, sender, recipientAccount, isValidated):
+        transaction = self(amount=amount, sender=sender, recipientAccount=recipientAccount, isValidated=isValidated)
         return transaction
         
 
     def __str__(self):
-        return "Transaction: " + self.sender.name + " -> " + self.receiver.name + ": " + str(self.amount) + " INR"
+        
+        return "Transaction: " + str(self.timestamp)#+ self.sender.name + " -> " + self.receiver.name + ": " + str(self.amount) + " INR"
 
 # 192.168.65.73:8002
