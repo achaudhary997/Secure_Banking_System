@@ -1,13 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-def getIFSCCode():
-    # TODO generate codes
-    return "randomString"
-
-def getAccNum():
+def get_acc_num():
     # TODO generate number
-    return 0000
+    return 12346789
+
 
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/
 # To access the multiple bank detials for a Profile p, just do p.account_set.objects.all() [Need to test this once]
@@ -26,14 +23,12 @@ class Customer(Profile):
     pass
 
 class Account(models.Model):
-    ifsccode = models.CharField(default=getIFSCCode, max_length=50)
-    accNumber = models.IntegerField(default=getAccNum)
-    BankName = models.CharField(default="NULL", max_length=50)
+    acc_number = models.IntegerField(default=get_acc_num)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     balance = models.FloatField(default=0.0)
 
     def __str__(self):
-        return "Account Deatails ifsccode: {}, accNumber: {}, BankName: {}".format(self.ifsccode, self.accNumber, self.BankName)
+        return "{}: {}".format(self.acc_number, self.balance)
     
 # Instead of reciever lets just keep the Account of the reciever
 class Transaction(models.Model):
@@ -55,4 +50,4 @@ class Transaction(models.Model):
         
         return "Transaction: " + str(self.timestamp)#+ self.sender.name + " -> " + self.receiver.name + ": " + str(self.amount) + " INR"
 
-# 192.168.65.73:8002
+# 192.168.59.24:8000

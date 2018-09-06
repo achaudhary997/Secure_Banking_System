@@ -20,9 +20,7 @@ class LoginForm(forms.Form):
 
 class TransactionForm(forms.Form):
     amount = forms.FloatField(required=True)
-    ifsc_code = forms.CharField(required=True)
     acc_num = forms.IntegerField(required=True)
-    bank_name = forms.CharField(required=True)
 
     def clean_acc_num(self):
         acc_num = self.cleaned_data['acc_num']
@@ -36,7 +34,7 @@ class TransactionForm(forms.Form):
     def clean(self):
         transaction = self.cleaned_data
         try:
-            recipientAccount = Account.objects.filter(accNumber=transaction['acc_num']).filter(ifsccode=transaction['ifsc_code']).filter(BankName=transaction['bank_name'])
+            recipientAccount = Account.objects.get(acc_number=transaction['acc_num'])
         except:
             raise forms.ValidationError("Account doesn't exist.")
         return transaction

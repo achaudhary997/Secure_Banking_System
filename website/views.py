@@ -6,6 +6,9 @@ from .models import Transaction, Profile, Account
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+
 
 def index(request):
     return render(request, 'website/index.html', context=None)
@@ -19,7 +22,7 @@ def login_user(request):
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
                     data = {
-                        'secret' : '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'secret' : settings.RECAPTCHA_SECRET,
                         'response' : recaptcha_response
                     }
                     r = requests.post(url, data=data)
@@ -55,7 +58,7 @@ def register_user(request):
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
                     data = {
-                        'secret' : '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'secret' : settings.RECAPTCHA_SECRET,
                         'response' : recaptcha_response
                     }
                     r = requests.post(url, data=data)

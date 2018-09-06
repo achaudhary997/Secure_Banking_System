@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name="home"),
-    
     # AUTH URLS
 
     path('login', views.login_user, name="login"),
