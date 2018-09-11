@@ -1,0 +1,22 @@
+{% extends 'website/base.html' %} 
+{% block title %}Profile | GoldWomenSex #377{% endblock %}
+
+{% block content %}
+    <h2>Name: {{ username }}</h2>
+    <h2>Address: {{ address }}</h2>
+    <h2>Phone Number: {{ contact }}</h2>
+    <div class="padding-bottom-100">
+        <div class="container">
+            <div class="magazi-forms">
+                <div class="current" id="login-tab">
+                    <form class="padding-bottom-75" method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        <input type="text" name="address" placeholder="Address" maxlength="100" required id="id_address" />
+                        <input type="text" name="contact" placeholder="Contact" maxlength="15" required id="id_contact" />
+                        <button type="submit">Request Modification</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

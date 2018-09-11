@@ -1,3 +1,4 @@
+{% load has_group %}
 <html>
     <head>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
@@ -17,15 +18,19 @@
     <body>
         <nav>
             <div class="nav-wrapper">
-                <a href="{% url 'home' %}" class="brand-logo" style="padding-left:2%;">SecureBank</a>
+                <a href="{% url 'home' %}" class="brand-logo" style="padding-left:2%;">GoldWomenSex</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     {% if not user.is_authenticated %}
                         <li><a href="{% url 'login' %}">Login</a></li>
-                        <li><a href="{% url 'register' %}">Register</a></li>
+                        {% comment %} <li><a href="{% url 'register' %}">Register</a></li> {% endcomment %}
                     {% else %}
-                        <li><a href="{% url 'transact' %}">Transact</a></li>
+                        {% if request.user|has_group:"Individual Customer" or request.user|has_group:"Merchant" %}
+                            <li><a href="{% url 'transact' %}">Transact</a></li>
+                        {% elif request.user|has_group:"System Manager" or request.user|has_group:"Employee" or request.user.is_superuser %}
+                            <li><a href="{% url 'manage_transaction' %}">Manage Transactions</a></li>
+                        {% endif %}
                         {% comment %} <li><a href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
-                        
+                        <li><a href="{% url 'profile' %}">Profile</a></li>
                         <li><a href="{% url 'logout' %}">Logout</a></li>
                     {% endif %}
                 </ul>

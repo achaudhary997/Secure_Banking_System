@@ -1,13 +1,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 import requests
-from .forms import LoginForm, RegisterForm, TransactionForm
+from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm
 from .models import Transaction, Profile, Account
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
+from .decorators import *
 
+def handle_404(request):
+    return render(request, 'website/404.html', staus=404)
 
 
 def index(request):
@@ -103,7 +106,6 @@ def transact(request):
     form = TransactionForm
     if request.user.is_authenticated:
         if request.method == 'POST':
-            print ("inside post")
             transact_form = TransactionForm(request.POST)
             if transact_form.is_valid():
                 amount = transact_form.cleaned_data['amount']
@@ -142,3 +144,36 @@ def transact(request):
         return render(request, 'website/transact.html', context={'form':form})
     else:
         return render(request, 'website/index.html')
+
+@login_required(login_url="/")
+@group_required('System Manager', 'Employee')
+def manage_transaction(request):
+    transactions = Transaction.objects.all()
+    return render(request, 'website/manage_transactions.html', context={"all_transactions": transactions})
+
+def profile_user(request):
+    form = ProfileUpdateForm
+    profile = request.user.id
+    curr_user = User.objects.get(pk=request.user.id)
+
+    profile = curr_user.user_profile.all()[0]
+    user_name = curr_user.username
+    user_address = profile.address
+    user_ph = profile.phone_number
+    user_details = {"username": user_name,
+                    "address": user_address, "contact": user_ph}
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            profile_update_form = ProfileUpdateForm(request.POST)
+            if profile_update_form.is_valid():
+                profile = profile_update_form.save(commit=False)
+                profile.user = request.user
+                profile.save()
+                return render(request, 'website/profile.html', context=user_details)
+            else:
+                return render(request, 'website/profile.html', context=user_details)
+        else:
+            
+            return render(request, 'website/profile.html', context=user_details)
+    else:       
+        return render(request, 'website/login.html', context=None)

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile, Transaction, Account
+from .models import Profile, Transaction, Account, ProfileModificationReq
 from django.contrib.auth.models import User
 import re
 
@@ -66,6 +66,27 @@ class RegisterForm(forms.ModelForm):
                 raise forms.ValidationError("9-15 digits allowed.")
             elif not re.match('^\+?1?\d{9,15}$', contact):
                 raise forms.ValidationError("Please Enter a valid contact number.")
+        else:
+            raise forms.ValidationError("Enter Contact Number.")
+        return contact
+
+class ProfileUpdateForm(forms.ModelForm):
+    address = forms.CharField(max_length=100, required=True)
+    contact = forms.CharField(max_length=15)
+
+    class Meta:
+        model = ProfileModificationReq
+        fields = (  'address',
+                    'contact')
+
+    def clean_contact(self):
+        contact = self.cleaned_data.get('contact')
+        if contact:
+            if len(contact) > 15 or len(contact) < 9:
+                raise forms.ValidationError("9-15 digits allowed.")
+            elif not re.match('^\+?1?\d{9,15}$', contact):
+                raise forms.ValidationError(
+                    "Please Enter a valid contact number.")
         else:
             raise forms.ValidationError("Enter Contact Number.")
         return contact
