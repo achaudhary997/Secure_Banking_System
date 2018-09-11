@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+import random
 
 def get_acc_num():
     # TODO generate number
-    return 12346789
+    return random.sample(range(1000000000, 1600000000), 10)[random.randint(0, 9)]
 
 
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/
@@ -16,11 +17,25 @@ class Profile(models.Model):
     # Info for KYC
     # Assign common permissions for all types of users
 
-class Employee(Profile):
-    pass
+    class Meta:
+        permissions = (
+            ("add_transaction", "Create a New Transaction"),
+        )
 
-class Customer(Profile):
-    pass
+class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_employee")
+
+    class Meta:
+        permissions = (
+            ("delete_transaction", "Delete a transaction"),
+            ("modify_user_account", "Modify a User Account"),            
+        )                                        
+
+# class Customer(models.Model):
+#     pass
+
+# class Merchant(models.Model):
+#     pass
 
 class Account(models.Model):
     acc_number = models.IntegerField(default=get_acc_num)
