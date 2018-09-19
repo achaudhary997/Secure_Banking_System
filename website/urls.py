@@ -11,7 +11,7 @@ urlpatterns = [
     path('profile.html', views.profile_user, name="profile"),
     path('login.jsp', views.login_user, name="login"),
     path('logout.aspx', views.logout_user, name="logout"),
-    path('register.php', views.register_user, name="register"),
+    # path('register.php', views.register_user, name="register"),
 
     # TRANSACTION URLS
 

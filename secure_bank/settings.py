@@ -59,6 +59,7 @@ TEMPLATES = [
 		'APP_DIRS': True,
 		'OPTIONS': {
 			'context_processors': [
+				'website.processors.website_name',
 				'django.template.context_processors.debug',
 				'django.template.context_processors.request',
 				'django.contrib.auth.context_processors.auth',
@@ -125,3 +126,9 @@ STATIC_URL = '/static/'
 CAPTCH_VERIFICATION = False
 
 RECAPTCHA_SECRET = "6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O"
+
+STATICFILES_DIRS = [
+	os.path.join(BASE_DIR, "static"),
+]
+
+WEBSITE_NAME = "GoldWomanSex"

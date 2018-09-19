@@ -3,26 +3,45 @@
 {% block title %}Transactions | GoldWomenSex{% endblock %}
 
 {% block content %}
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Sender</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Timestamp</th>
-            <th scope="col">Validated</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for transaction in all_transactions %}
-            <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <td>{{ transaction.sender }}</td>
-                <td>{{ transaction.amount }}</td>
-                <td>{{ transaction.timestamp }}</td>
-                <td>{{ transaction.isValidated }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-  </table>
+
+<div id="contact" class="contact-area">
+        <div class="contact-inner padding-manage-transactions">
+            <div class="contact-overly"></div>
+            <div class="container ">
+                <div class="row">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="section-headline text-center">
+                            <h2>Transactions</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Sender</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Validated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in all_transactions %}
+                                <tr>
+                                    <th scope="row">{{ forloop.counter }}</th>
+                                    <td>{{ transaction.sender }}</td>
+                                    <td>{{ transaction.amount }}</td>
+                                    <td>{{ transaction.timestamp }}</td>
+                                    <td>{{ transaction.isValidated }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 {% endblock %}
