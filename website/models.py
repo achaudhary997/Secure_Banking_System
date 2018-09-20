@@ -97,3 +97,4 @@ class ProfileModificationReq(models.Model):
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
 
 # 192.168.65.164:8000
+# 192.168.59.27:8000

@@ -1,4 +1,5 @@
 {% extends 'website/base.html' %}
+{% load static %}
 
 {% block title %}Home | {{ website_name }}{% endblock %}
 
@@ -96,12 +97,10 @@
 				<div class="about-move">
 				  <div class="services-details">
 					<div class="single-services">
-					  <a class="services-icon" href="#">
-												<i class="fa fa-code"></i>
-											</a>
-					  <h4>Expert Coder</h4>
+					  <a class="services-icon" href="#"><i class="fa fa-expeditedssl"></i></a>
+					  <h4>SSL Encryption</h4>
 					  <p>
-						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
+						Want to sniff our packets? Lol, no thenks.
 					  </p>
 					</div>
 				  </div>
@@ -113,11 +112,11 @@
 				  <div class="services-details">
 					<div class="single-services">
 					  <a class="services-icon" href="#">
-												<i class="fa fa-camera-retro"></i>
+												<i class="fa fa-check"></i>
 											</a>
-					  <h4>Creative Designer</h4>
+					  <h4>OTP Verification</h4>
 					  <p>
-						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
+						Spoofing a transaction ain't that easy bruh.
 					  </p>
 					</div>
 				  </div>
@@ -129,9 +128,7 @@
 				<div class=" about-move">
 				  <div class="services-details">
 					<div class="single-services">
-					  <a class="services-icon" href="#">
-												<i class="fa fa-wordpress"></i>
-											</a>
+					  <a class="services-icon" href="#"><i class="fa fa-wordpress"></i></a>
 					  <h4>Wordpress Developer</h4>
 					  <p>
 						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
@@ -140,60 +137,7 @@
 				  </div>
 				  <!-- end about-details -->
 				</div>
-			  </div>
-			  <div class="col-md-4 col-sm-4 col-xs-12">
-				<!-- end col-md-4 -->
-				<div class=" about-move">
-				  <div class="services-details">
-					<div class="single-services">
-					  <a class="services-icon" href="#">
-												<i class="fa fa-camera-retro"></i>
-											</a>
-					  <h4>Social Marketer </h4>
-					  <p>
-						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
-					  </p>
-					</div>
-				  </div>
-				  <!-- end about-details -->
-				</div>
-			  </div>
-			  <!-- End Left services -->
-			  <div class="col-md-4 col-sm-4 col-xs-12">
-				<!-- end col-md-4 -->
-				<div class=" about-move">
-				  <div class="services-details">
-					<div class="single-services">
-					  <a class="services-icon" href="#">
-												<i class="fa fa-bar-chart"></i>
-											</a>
-					  <h4>Seo Expart</h4>
-					  <p>
-						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
-					  </p>
-					</div>
-				  </div>
-				  <!-- end about-details -->
-				</div>
-			  </div>
-			  <!-- End Left services -->
-			  <div class="col-md-4 col-sm-4 col-xs-12">
-				<!-- end col-md-4 -->
-				<div class=" about-move">
-				  <div class="services-details">
-					<div class="single-services">
-					  <a class="services-icon" href="#">
-												<i class="fa fa-ticket"></i>
-											</a>
-					  <h4>24/7 Support</h4>
-					  <p>
-						will have to make sure the prototype looks finished by inserting text or photo.make sure the prototype looks finished by.
-					  </p>
-					</div>
-				  </div>
-				  <!-- end about-details -->
-				</div>
-			  </div>
+			</div>
 			</div>
 		  </div>
 		</div>
@@ -205,144 +149,133 @@
 	<div class="row">
 	  <div class="col-md-12 col-sm-12 col-xs-12">
 		<div class="section-headline text-center">
-		  <h2>Our special Team</h2>
+		  <h2>Our Team</h2>
 		</div>
 	  </div>
 	</div>
 	<div class="row">
 	  <div class="team-top">
-		<div class="col-md-3 col-sm-3 col-xs-12">
+		<div class="col-md-offset-1 col-md-2 col-sm-3 col-xs-12">
+			<div class="single-team-member">
+				<div class="team-img">
+					<a href="#"><img src="{% static 'website/img/yashit.jpeg' %}" alt=""></a>
+					<div class="team-social-icon text-center">
+						<ul>
+							<li>
+								<a href="#"><i class="fa fa-facebook"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-twitter"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-instagram"></i></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="team-content text-center">
+					<h4>Yashit Maheshwary</h4>
+				</div>
+			</div>
+		</div>
+		<!-- End column -->
+		<div class="col-md-2 col-sm-3 col-xs-12">
+			<div class="single-team-member">
+				<div class="team-img">
+					<a href="#"><img src="{% static 'website/img/ds.png' %}" alt=""></a>
+					<div class="team-social-icon text-center">
+						<ul>
+							<li>
+								<a href="#"><i class="fa fa-facebook"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-twitter"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-instagram"></i></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="team-content text-center">
+					<h4>Deepak Srivatsav</h4>
+				</div>
+			</div>
+		</div>
+		<!-- End column -->
+		<div class="col-md-2 col-sm-3 col-xs-12">
+			<div class="single-team-member">
+			<div class="team-img">
+				<a href="#"><img src="{% static 'website/img/anubhav.png' %}" alt=""></a>
+				<div class="team-social-icon text-center">
+				<ul>
+					<li>
+					<a href="#"><i class="fa fa-facebook"></i></a>
+					</li>
+					<li>
+					<a href="#"><i class="fa fa-twitter"></i></a>
+					</li>
+					<li>
+					<a href="#"><i class="fa fa-instagram"></i></a>
+					</li>
+				</ul>
+				</div>
+			</div>
+			<div class="team-content text-center">
+				<h4>Anubhav Chaudhary</h4>
+			</div>
+			</div>
+		</div>
+		<!-- End column -->
+		<div class="col-md-2 col-sm-3 col-xs-12">
 		  <div class="single-team-member">
 			<div class="team-img">
-			  <a href="#">
-									  <img src="img/team/1.jpg" alt="">
-								  </a>
+			  <a href="#"><img src="{% static 'website/img/dk.png' %}" alt=""></a>
 			  <div class="team-social-icon text-center">
 				<ul>
 				  <li>
-					<a href="#">
-												  <i class="fa fa-facebook"></i>
-											  </a>
+						<a href="#"><i class="fa fa-facebook"></i></a>
 				  </li>
 				  <li>
-					<a href="#">
-												  <i class="fa fa-twitter"></i>
-											  </a>
+						<a href="#"><i class="fa fa-twitter"></i></a>
 				  </li>
 				  <li>
-					<a href="#">
-												  <i class="fa fa-instagram"></i>
-											  </a>
+						<a href="#"><i class="fa fa-instagram"></i></a>
 				  </li>
 				</ul>
 			  </div>
 			</div>
 			<div class="team-content text-center">
-			  <h4>Jhon Mickel</h4>
-			  <p>Seo</p>
+			  <h4>Deepak Kurian</h4>
 			</div>
 		  </div>
 		</div>
 		<!-- End column -->
-		<div class="col-md-3 col-sm-3 col-xs-12">
-		  <div class="single-team-member">
-			<div class="team-img">
-			  <a href="#">
-									  <img src="img/team/2.jpg" alt="">
-								  </a>
-			  <div class="team-social-icon text-center">
-				<ul>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-facebook"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-twitter"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-instagram"></i>
-											  </a>
-				  </li>
-				</ul>
-			  </div>
-			</div>
-			<div class="team-content text-center">
-			  <h4>Andrew Arnold</h4>
-			  <p>Web Developer</p>
-			</div>
-		  </div>
-		</div>
 		<!-- End column -->
-		<div class="col-md-3 col-sm-3 col-xs-12">
-		  <div class="single-team-member">
-			<div class="team-img">
-			  <a href="#">
-									  <img src="img/team/3.jpg" alt="">
-								  </a>
-			  <div class="team-social-icon text-center">
-				<ul>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-facebook"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-twitter"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-instagram"></i>
-											  </a>
-				  </li>
-				</ul>
-			  </div>
+		<div class="col-md-2 col-sm-3 col-xs-12">
+				<div class="single-team-member">
+				<div class="team-img">
+					<a href="#"><img src="{% static 'website/img/pg.jpeg' %}" alt=""></a>
+					<div class="team-social-icon text-center">
+					<ul>
+						<li>
+							<a href="#"><i class="fa fa-facebook"></i></a>
+						</li>
+						<li>
+							<a href="#"><i class="fa fa-twitter"></i></a>
+						</li>
+						<li>
+							<a href="#"><i class="fa fa-instagram"></i></a>
+						</li>
+					</ul>
+					</div>
+				</div>
+				<div class="team-content text-center">
+					<h4>Piyush<br> Gupta</h4>
+				</div>
+				</div>
 			</div>
-			<div class="team-content text-center">
-			  <h4>Lellien Linda</h4>
-			  <p>Web Design</p>
-			</div>
-		  </div>
-		</div>
-		<!-- End column -->
-		<div class="col-md-3 col-sm-3 col-xs-12">
-		  <div class="single-team-member">
-			<div class="team-img">
-			  <a href="#">
-									  <img src="img/team/4.jpg" alt="">
-								  </a>
-			  <div class="team-social-icon text-center">
-				<ul>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-facebook"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-twitter"></i>
-											  </a>
-				  </li>
-				  <li>
-					<a href="#">
-												  <i class="fa fa-instagram"></i>
-											  </a>
-				  </li>
-				</ul>
-			  </div>
-			</div>
-			<div class="team-content text-center">
-			  <h4>Jhon Powel</h4>
-			  <p>Seo Expert</p>
-			</div>
-		  </div>
-		</div>
-		<!-- End column -->
+			<!-- End column -->
 	  </div>
 	</div>
   </div>

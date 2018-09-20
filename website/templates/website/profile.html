@@ -1,22 +1,57 @@
 {% extends 'website/base.html' %} 
-{% block title %}Profile | GoldWomenSex #377{% endblock %}
+{% block title %}Profile | {{ website_name }}{% endblock %}
+
+{% block captcha %}<script src='https://www.google.com/recaptcha/api.js'></script>{% endblock %} 
 
 {% block content %}
-    <h2>Name: {{ username }}</h2>
-    <h2>Address: {{ address }}</h2>
-    <h2>Phone Number: {{ contact }}</h2>
-    <div class="padding-bottom-100">
-        <div class="container">
-            <div class="magazi-forms">
-                <div class="current" id="login-tab">
-                    <form class="padding-bottom-75" method="post" action="{% url 'profile' %}">
-                        {% csrf_token %}
-                        <input type="text" name="address" placeholder="Address" maxlength="100" required id="id_address" />
-                        <input type="text" name="contact" placeholder="Contact" maxlength="15" required id="id_contact" />
-                        <button type="submit">Request Modification</button>
-                    </form>
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner new-page-padding">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Profile</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form contact-form">
+                        <form action="{% url 'transact' %}" method="post" role="form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                {% for field in forms %}
+                                    {% if field.errors %}
+                                        {{ field.errors }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ messaage.tags }}">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control" disabled placeholder="{{ username }}" />
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="contact" class="form-control" required id="id_contact" value="{{ contact }}" placeholder="Contact Number" />
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="address" class="form-control" required id="id_address" value="{{ address }}" placeholder="Address"/>
+                            </div>
+                            <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>
+                            <div class="text-center"><button type="submit">Request Modification</button></div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
 {% endblock %}

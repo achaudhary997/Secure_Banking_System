@@ -22,6 +22,7 @@ def login_user(request):
             login_form = LoginForm(request.POST)
             if login_form.is_valid():  
                 recaptcha_response = request.POST.get('g-recaptcha-response')
+                print("hello")
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
                     data = {
@@ -33,6 +34,7 @@ def login_user(request):
                     if result['success'] or not settings.CAPTCHA_VERIFICATION:
                         username = login_form.cleaned_data['username']
                         password = login_form.cleaned_data['password']
+
 
                         user = authenticate(request, username=username, password=password)
 

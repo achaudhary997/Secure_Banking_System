@@ -1,6 +1,6 @@
 {% extends 'website/base.html' %}
 
-{% block title %}Login | GoldWomenSex{% endblock %}
+{% block title %}Login | {{ website_name }}{% endblock %}
 
 {% block captcha %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
@@ -44,7 +44,7 @@
                             <div class="form-group">
                                 <input type="password" class="form-control" name="password" required id="id_password" placeholder="Password" />
                             </div>
-                            <div class="g-recaptcha text-center" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+                            <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>
                             <div class="text-center"><button type="submit">Login</button></div>
                         </form>
                     </div>
