@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm
-from .models import Transaction, Profile, Account
+from .models import Transaction, Profile, Account, CustomerIndividual, Employee
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
@@ -115,19 +115,33 @@ def transact(request):
                 acc_num = transact_form.cleaned_data['acc_num']
 
                 recipientAccount = Account.objects.filter(acc_number=acc_num)[0]
+                senderAccount = Account.objects.filter(
+                    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+                
+                signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
+
                 print (type(recipientAccount).__name__)
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
                 if float(amount) > 100000:
                     isValidated = False
                 else:
-                    isValidated = True
+                    if amount < senderAccount.balance - 10000:
+                        senderAccount.balance -= amount
+                        recipientAccount.balance += amount
+                        senderAccount.save()
+                        recipientAccount.save()
+                        isValidated = True
+                    else:
+                        #Return error saying atleast 10000 balance should be there
+                        isValidated = False
+                    
                 
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
                     data = {
-                        'secret': '6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O',
+                        'secret': settings.RECAPTCHA_SECRET,
                         'response': recaptcha_response
                     }
                     r = requests.post(url, data=data)
@@ -135,6 +149,8 @@ def transact(request):
                     if result['success']:
                         transaction = Transaction.create(   amount=amount, sender=request.user, 
                                                             recipientAccount=recipientAccount, 
+                                                            senderAccount=senderAccount,
+                                                            signator=signator,
                                                             isValidated=isValidated
                                                         )
                         transaction.save()
@@ -149,9 +165,13 @@ def transact(request):
 @login_required(login_url="/")
 @group_required('System Manager', 'Employee')
 def manage_transaction(request):
-    transactions = Transaction.objects.all()
-    return render(request, 'website/manage_transactions.html', context={"all_transactions": transactions})
+    if request.user.groups.filter(name='System Manager').exists():
+        transactions = Transaction.objects.all()
+    else:
+        employee_object = Employee.objects.filter(user=request.user)[0]
+        transactions = Transaction.objects.filter(signator=employee_object)
 
+    return render(request, 'website/manage_transactions.html', context={"all_transactions": transactions})
 def profile_user(request):
     form = ProfileUpdateForm
     profile = request.user.id
@@ -187,6 +207,15 @@ def history(request):
     user_account = Account.objects.filter(
         user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
     user_account_number = user_account.acc_number
+    user_account_balance = user_account.balance
     received_transactions = Transaction.objects.filter(recipientAccount=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
-    return render(request, 'website/history.html', context={"user_transactions": user_transactions, "user_account_number":user_account_number})
+    return render(  
+                    request, 
+                    'website/history.html', 
+                    context={   
+                                "user_transactions": user_transactions, 
+                                "user_account_number": user_account_number, 
+                                "user_account_balance": user_account_balance
+                            }
+                )

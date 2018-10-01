@@ -21,6 +21,10 @@ class Profile(models.Model):
         permissions = (
             ("add_transaction", "Create a New Transaction"),
         )
+    
+    def __str__(self):
+        return "{}".format(self.user.username)
+
 
 # Have to add inheritence for atleast address or phone number
 
@@ -29,7 +33,10 @@ class Employee(models.Model):
     class Meta:
         permissions = (
             ("delete_transaction", "Delete a transaction"),      
-        )                                    
+        )        
+
+    def __str__(self):
+        return "{}".format(self.user.username)
 
 class SystemManager(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_sys_manager")
@@ -40,9 +47,14 @@ class SystemManager(models.Model):
             ("auth_crit_trans", "Authorize Critical Transaction"),
         )
 
+    def __str__(self):
+        return "{}".format(self.user.username)
+
 class CustomerIndividual(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="user_indi_customer")
+    relationship_manager = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="indi_customer_rel_man")
 
     class Meta:
         permissions = (
@@ -50,11 +62,16 @@ class CustomerIndividual(models.Model):
             ("initiate_info_mod", "Initiate information modification"),
             ("view_transaction", "View transaction details")
         )
+    
+    def __str__(self):
+        return "{}".format(self.user.username)
 
 
 class Merchant(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="user_merchant")
+    relationship_manager = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="merchant_rel_man")
     
     class Meta:
         permissions = (
@@ -62,6 +79,9 @@ class Merchant(models.Model):
             ("initiate_info_mod", "Initiate information modification"),
             ("view_transaction", "View transaction details")
         )
+
+    def __str__(self):
+        return "{}".format(self.user.username)
 
 class Account(models.Model):
     acc_number = models.IntegerField(default=get_acc_num)
@@ -69,21 +89,21 @@ class Account(models.Model):
     balance = models.FloatField(default=0.0)
 
     def __str__(self):
-        return "{}: {}".format(self.acc_number, self.balance)
+        return "{}: {}: {}".format(self.user.user.username, self.acc_number, self.balance)
     
 # Instead of reciever lets just keep the Account of the reciever
 class Transaction(models.Model):
     amount = models.FloatField(default=0.0)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
-    #receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receiver")
-    #signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator", default=None)
+    senderAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sender_account")
     recipientAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
+    signator = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="signator")
     timestamp = models.DateTimeField(auto_now_add=True)
     isValidated = models.BooleanField(default=False)
     
     @classmethod
-    def create(self, amount, sender, recipientAccount, isValidated):
-        transaction = self(amount=amount, sender=sender, recipientAccount=recipientAccount, isValidated=isValidated)
+    def create(self, amount, sender, recipientAccount, senderAccount, signator, isValidated):
+        transaction = self(amount=amount, sender=sender, recipientAccount=recipientAccount, senderAccount=senderAccount, signator=signator, isValidated=isValidated)
         return transaction
         
 

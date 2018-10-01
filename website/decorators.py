@@ -4,7 +4,8 @@ def group_required(*group_names):
     
     def in_groups(user):
         if user.is_authenticated:
-            if (user.groups.values_list()[0][1] in group_names) or user.is_superuser:
+            print (user.groups.values_list())
+            if user.is_superuser or (user.groups.values_list()[0][1] in group_names):
                 return True
         return False
     
