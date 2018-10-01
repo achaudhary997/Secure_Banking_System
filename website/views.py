@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .decorators import *
+from itertools import chain
 
 def handle_404(request):
     return render(request, 'website/404.html', staus=404)
@@ -111,11 +112,9 @@ def transact(request):
             transact_form = TransactionForm(request.POST)
             if transact_form.is_valid():
                 amount = transact_form.cleaned_data['amount']
-                ifsccode = transact_form.cleaned_data['ifsc_code']
-                accNum = transact_form.cleaned_data['acc_num']
-                bankName = transact_form.cleaned_data['bank_name']
+                acc_num = transact_form.cleaned_data['acc_num']
 
-                recipientAccount = Account.objects.filter(accNumber=accNum).filter(ifsccode=ifsccode).filter(BankName=bankName)[0]
+                recipientAccount = Account.objects.filter(acc_number=acc_num)[0]
                 print (type(recipientAccount).__name__)
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
@@ -179,3 +178,15 @@ def profile_user(request):
             return render(request, 'website/profile.html', context=user_details)
     else:       
         return render(request, 'website/login.html', context=None)
+
+
+@login_required(login_url="/")
+@group_required('Individual Customer', 'Merchant')
+def history(request):
+    sent_transactions = Transaction.objects.filter(sender=request.user)
+    user_account = Account.objects.filter(
+        user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+    user_account_number = user_account.acc_number
+    received_transactions = Transaction.objects.filter(recipientAccount=user_account)
+    user_transactions = list(chain(sent_transactions, received_transactions))
+    return render(request, 'website/history.html', context={"user_transactions": user_transactions, "user_account_number":user_account_number})

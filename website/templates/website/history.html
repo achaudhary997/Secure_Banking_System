@@ -1,0 +1,45 @@
+{% extends 'website/base.html' %} 
+{% block title %}Transaction History | {{ website_name }}{% endblock %} {% block content %}
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Transaction History</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Sender Account</th>
+                            <th scope="col">Recipient Account</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in user_transactions %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ transaction.sender }}</td>
+                            <td>{{ transaction.recipientAccount.acc_number }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>{{ transaction.timestamp }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center form contact-form"><button type="submit">Download Account Statement</button></div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

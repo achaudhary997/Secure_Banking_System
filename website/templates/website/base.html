@@ -68,6 +68,7 @@
                               {% else %}
                                   {% if request.user|has_group:"Individual Customer" or request.user|has_group:"Merchant" %}
                                       <li><a class="page-scroll" href="{% url 'transact' %}">Transact</a></li>
+                                      <li><a class="page-scroll" href="{% url 'history' %}">History</a></li>
                                   {% elif request.user|has_group:"System Manager" or request.user|has_group:"Employee" or request.user.is_superuser %}
                                       <li><a class="page-scroll" href="{% url 'manage_transaction' %}">Manage Transactions</a></li>
                                   {% endif %}

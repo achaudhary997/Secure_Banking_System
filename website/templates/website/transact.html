@@ -1,6 +1,6 @@
 {% extends 'website/base.html' %} 
 
-{% block title %}Login | {{ website_name }}{% endblock %} 
+{% block title %}Transact | {{ website_name }}{% endblock %} 
 
 {% block captcha %}<script src='https://www.google.com/recaptcha/api.js'></script>{% endblock %} 
 
@@ -35,9 +35,15 @@
                                     </div>
                                 {% endfor %}
                             {% endif %}
+                            <h4>
+                                Amount:
+                            </h4>
                             <div class="form-group">
                                 <input type="number" name="amount" class="form-control" required id="id_amount" placeholder="Amount" />
                             </div>
+                            <h4>
+                                Account Number:
+                            </h4>
                             <div class="form-group">
                                 <input type="number" class="form-control" name="acc_num" required id="id_acc_num" placeholder="Account Number" />
                             </div>
