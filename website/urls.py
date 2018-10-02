@@ -16,6 +16,7 @@ urlpatterns = [
     # TRANSACTION URLS
 
     path('transact.html', views.transact, name="transact"),
-    path('manage_transaction.php', views.manage_transaction, name="manage_transaction")
+    path('manage_transaction.php', views.manage_transaction, name="manage_transaction"),
+    path('history.html', views.history, name="history")
 
 ]

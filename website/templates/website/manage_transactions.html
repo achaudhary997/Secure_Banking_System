@@ -20,7 +20,8 @@
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
-                                <th scope="col">Sender</th>
+                                <th scope="col">Sender Account</th>
+                                <th scope="col">Recepient Account</th>
                                 <th scope="col">Amount</th>
                                 <th scope="col">Timestamp</th>
                                 <th scope="col">Validated</th>
@@ -30,7 +31,8 @@
                             {% for transaction in all_transactions %}
                                 <tr>
                                     <th scope="row">{{ forloop.counter }}</th>
-                                    <td>{{ transaction.sender }}</td>
+                                    <td>{{ transaction.senderAccount.acc_number }}</td>
+                                    <td>{{ transaction.recipientAccount.acc_number }}</td>
                                     <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.timestamp }}</td>
                                     <td>{{ transaction.isValidated }}</td>
