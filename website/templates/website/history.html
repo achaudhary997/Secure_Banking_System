@@ -28,6 +28,7 @@
                             <th scope="col">Transaction Type</th>
                             <th scope="col">Amount</th>
                             <th scope="col">Timestamp</th>
+                            <th scope="col">Transaction Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,6 +44,11 @@
                             {% endif %}
                             <td>{{ transaction.amount }}</td>
                             <td>{{ transaction.timestamp }}</td>
+                            {% if transaction.isValidated == True %}
+                                <td>Success</td>
+                            {% else %}
+                                <td>Pending</td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>

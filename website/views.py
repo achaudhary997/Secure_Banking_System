@@ -135,6 +135,7 @@ def transact(request):
                     else:
                         #Return error saying atleast 10000 balance should be there
                         isValidated = False
+                        return render(request, 'website/transact.html')
                     
                 
                 recaptcha_response = request.POST.get('g-recaptcha-response')
