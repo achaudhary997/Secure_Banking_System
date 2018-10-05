@@ -133,10 +133,13 @@ STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, "static"),
 ]
 
-if os.environ.get('sober') == 'TRUE':
-	WEBSITE_NAME = "GoldWomanSachs"
-else:
+if os.environ.get('sober') == 'FALSE':
 	WEBSITE_NAME = "GoldWomanSex"
+	WEBSITE_BASE_NAME = "WomanSex"
+else:
+	WEBSITE_NAME = "GoldWomanSachs"
+	WEBSITE_BASE_NAME = "WomanSachs"
+
 
 
 # print (os.environ.get('sober'))
