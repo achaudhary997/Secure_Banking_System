@@ -123,6 +123,9 @@ def transact(request):
                 print (type(recipientAccount).__name__)
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
+                if float(amount) > senderAccount.balance + 10000:
+                    isValidated = False
+                    return render(request, 'website/transact.html')
                 if float(amount) > 100000:
                     isValidated = False
                 else:
