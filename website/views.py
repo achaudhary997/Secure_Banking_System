@@ -21,7 +21,7 @@ def login_user(request):
     if not request.user.is_authenticated:
         if request.method == "POST":
             login_form = LoginForm(request.POST)
-            if login_form.is_valid():  
+            if login_form.is_valid():
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 print("hello")
                 if recaptcha_response:
@@ -43,7 +43,7 @@ def login_user(request):
                             login(request, user)
                             return redirect('home')
                         else:
-                            messages.error(request, 'Incorrect Username or Password.')                        
+                            messages.error(request, 'Incorrect Username or Password.')
                         return render(request, 'website/login.html')
                     else:
                         messages.error(request, 'Captcha Not Verified.')
@@ -72,20 +72,20 @@ def register_user(request):
                     if result['success'] or not settings.CAPTCHA_VERIFICATION:
                         user = register_form.save()
                         user.refresh_from_db()
-                        
+
                         profile = Profile()
                         profile.user_id = user.id
                         profile.address = register_form.cleaned_data['address']
                         profile.phone_number = register_form.cleaned_data['contact']
                         profile.save()
 
-                        email = register_form.cleaned_data['email_address']          
+                        email = register_form.cleaned_data['email_address']
                         try:
                             match = User.objects.get(email=email)
                             print(match)
                             messages.error(request, "User with this email already exists.")
                             user.delete()
-                            return render(request, 'website/register.html', context={"form": form})                            
+                            return render(request, 'website/register.html', context={"form": form})
                         except User.DoesNotExist:
                             pass
                         user.email = email
@@ -117,13 +117,13 @@ def transact(request):
                 recipientAccount = Account.objects.filter(acc_number=acc_num)[0]
                 senderAccount = Account.objects.filter(
                     user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-                
+
                 signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
 
                 print (type(recipientAccount).__name__)
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
-                if float(amount) > senderAccount.balance:
+                if float(amount) > senderAccount.balance - 10000:
                     isValidated = False
                     return render(request, 'website/transact.html')
                 if float(amount) > 100000:
@@ -139,8 +139,8 @@ def transact(request):
                         #Return error saying atleast 10000 balance should be there
                         isValidated = False
                         return render(request, 'website/transact.html')
-                    
-                
+
+
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -151,8 +151,8 @@ def transact(request):
                     r = requests.post(url, data=data)
                     result = r.json()
                     if result['success']:
-                        transaction = Transaction.create(   amount=amount, sender=request.user, 
-                                                            recipientAccount=recipientAccount, 
+                        transaction = Transaction.create(   amount=amount, sender=request.user,
+                                                            recipientAccount=recipientAccount,
                                                             senderAccount=senderAccount,
                                                             signator=signator,
                                                             isValidated=isValidated
@@ -198,9 +198,9 @@ def profile_user(request):
             else:
                 return render(request, 'website/profile.html', context=user_details)
         else:
-            
+
             return render(request, 'website/profile.html', context=user_details)
-    else:       
+    else:
         return render(request, 'website/login.html', context=None)
 
 
@@ -214,12 +214,12 @@ def history(request):
     user_account_balance = user_account.balance
     received_transactions = Transaction.objects.filter(recipientAccount=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
-    return render(  
-                    request, 
-                    'website/history.html', 
-                    context={   
-                                "user_transactions": user_transactions, 
-                                "user_account_number": user_account_number, 
+    return render(
+                    request,
+                    'website/history.html',
+                    context={
+                                "user_transactions": user_transactions,
+                                "user_account_number": user_account_number,
                                 "user_account_balance": user_account_balance
                             }
                 )
