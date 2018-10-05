@@ -123,6 +123,9 @@ def transact(request):
                 print (type(recipientAccount).__name__)
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
+                if recipientAccount == senderAccount:
+                    messages.error(request, 'Oops! Cannot send money to yourselves.')
+                    return render(request, 'website/transact.html')
                 if float(amount) > senderAccount.balance - 10000:
                     isValidated = False
                     return render(request, 'website/transact.html')
@@ -138,6 +141,7 @@ def transact(request):
                     else:
                         #Return error saying atleast 10000 balance should be there
                         isValidated = False
+                        messages.error(request, 'You must maintain a minimum balance of INR 10,000.')
                         return render(request, 'website/transact.html')
 
 
