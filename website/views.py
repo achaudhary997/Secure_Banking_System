@@ -9,6 +9,8 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .decorators import *
 from itertools import chain
+from django.http import HttpResponse
+import csv
 
 def handle_404(request):
     return render(request, 'website/404.html', staus=404)
@@ -56,10 +58,8 @@ def register_user(request):
     form = RegisterForm
     if not request.user.is_authenticated:
         if request.method == "POST":
-            print("lol1")
             register_form = RegisterForm(request.POST)
             if register_form.is_valid():
-                print("lol2")
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -218,6 +218,7 @@ def history(request):
     user_account_balance = user_account.balance
     received_transactions = Transaction.objects.filter(recipientAccount=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
+    
     return render(
                     request,
                     'website/history.html',
@@ -227,3 +228,47 @@ def history(request):
                                 "user_account_balance": user_account_balance
                             }
                 )
+
+
+@login_required(login_url="/")
+@group_required('Individual Customer', 'Merchant')
+def statement(request):
+
+    sent_transactions = Transaction.objects.filter(sender=request.user)
+    user_account = Account.objects.filter(
+        user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+    user_account_number = user_account.acc_number
+    user_account_balance = user_account.balance
+    received_transactions = Transaction.objects.filter(recipientAccount=user_account)
+    user_transactions = list(chain(sent_transactions, received_transactions))
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="account_statement.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['#', 'Sender Account', 'Recipient Account', 'Transaction Type', 'Amount', 'Timestamp', 'Transaction Status'])
+
+    for transaction_counter in range(len(user_transactions)):
+        transaction = user_transactions[transaction_counter]
+        
+        transaction_type = ""
+        if user_account_number == transaction.senderAccount.acc_number:
+            transaction_type = "Debit"
+        else:
+            transaction_type = "Credit"
+        
+        validation_status = ""
+        if transaction.isValidated:
+            validation_status = "Success"
+        else:
+            validation_status = "Pending"
+
+        writer.writerow([str(transaction_counter + 1),
+                        transaction.senderAccount.acc_number, 
+                        transaction.recipientAccount.acc_number,
+                        transaction_type,
+                        str(transaction.amount),
+                        transaction.timestamp,
+                        validation_status])
+    
+    return response

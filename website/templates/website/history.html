@@ -54,7 +54,11 @@
                     </tbody>
                 </table>
             </div>
-            <div class="text-center form contact-form"><button type="submit">Download Account Statement</button></div>
+            <div class="text-center form contact-form">
+                <form action="{% url 'get_statement' %}">
+                    <button type="submit">Download Account Statement</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
