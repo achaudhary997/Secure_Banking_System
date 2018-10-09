@@ -124,7 +124,10 @@ def transact(request):
                 if recipientAccount is None:
                     return render(request, 'website/index.html')
                 if recipientAccount == senderAccount:
-                    messages.error(request, 'Oops! Cannot send money to yourselves.')
+                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
+                    return render(request, 'website/transact.html')
+                if float(amount) <= 0:
+                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
                     return render(request, 'website/transact.html')
                 if float(amount) > senderAccount.balance - 10000:
                     isValidated = False
@@ -141,7 +144,7 @@ def transact(request):
                     else:
                         #Return error saying atleast 10000 balance should be there
                         isValidated = False
-                        messages.error(request, 'You must maintain a minimum balance of INR 10,000.')
+                        messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
                         return render(request, 'website/transact.html')
 
 
@@ -218,7 +221,7 @@ def history(request):
     user_account_balance = user_account.balance
     received_transactions = Transaction.objects.filter(recipientAccount=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
-    
+
     return render(
                     request,
                     'website/history.html',
@@ -250,13 +253,13 @@ def statement(request):
 
     for transaction_counter in range(len(user_transactions)):
         transaction = user_transactions[transaction_counter]
-        
+
         transaction_type = ""
         if user_account_number == transaction.senderAccount.acc_number:
             transaction_type = "Debit"
         else:
             transaction_type = "Credit"
-        
+
         validation_status = ""
         if transaction.isValidated:
             validation_status = "Success"
@@ -264,11 +267,11 @@ def statement(request):
             validation_status = "Pending"
 
         writer.writerow([str(transaction_counter + 1),
-                        transaction.senderAccount.acc_number, 
+                        transaction.senderAccount.acc_number,
                         transaction.recipientAccount.acc_number,
                         transaction_type,
                         str(transaction.amount),
                         transaction.timestamp,
                         validation_status])
-    
+
     return response
