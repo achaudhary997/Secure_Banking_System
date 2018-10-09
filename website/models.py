@@ -93,17 +93,18 @@ class Account(models.Model):
     
 # Instead of reciever lets just keep the Account of the reciever
 class Transaction(models.Model):
+    transaction_id = models.AutoField(primary_key=True)
     amount = models.FloatField(default=0.0)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
-    senderAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sender_account")
-    recipientAccount = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
+    sender_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sender_account")
+    recipient_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
     signator = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="signator")
     timestamp = models.DateTimeField(auto_now_add=True)
-    isValidated = models.BooleanField(default=False)
+    is_validated = models.BooleanField(default=False)
     
     @classmethod
-    def create(self, amount, sender, recipientAccount, senderAccount, signator, isValidated):
-        transaction = self(amount=amount, sender=sender, recipientAccount=recipientAccount, senderAccount=senderAccount, signator=signator, isValidated=isValidated)
+    def create(self, amount, sender, recipient_account, sender_account, signator, is_validated):
+        transaction = self(amount=amount, sender=sender, recipient_account=recipient_account, sender_account=sender_account, signator=signator, is_validated=is_validated)
         return transaction
         
 
@@ -115,6 +116,9 @@ class ProfileModificationReq(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
+
+    def __str__(self):
+        return "User: " + str(self.user.username)
 
 # 192.168.65.164:8000
 # 192.168.59.27:8000

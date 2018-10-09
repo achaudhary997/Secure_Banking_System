@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm
@@ -114,36 +114,36 @@ def transact(request):
                 amount = transact_form.cleaned_data['amount']
                 acc_num = transact_form.cleaned_data['acc_num']
 
-                recipientAccount = Account.objects.filter(acc_number=acc_num)[0]
-                senderAccount = Account.objects.filter(
+                recipient_account = Account.objects.filter(acc_number=acc_num)[0]
+                sender_account = Account.objects.filter(
                     user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
 
                 signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
 
-                print (type(recipientAccount).__name__)
-                if recipientAccount is None:
+                print (type(recipient_account).__name__)
+                if recipient_account is None:
                     return render(request, 'website/index.html')
-                if recipientAccount == senderAccount:
+                if recipient_account == sender_account:
                     messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
                     return render(request, 'website/transact.html')
                 if float(amount) <= 0:
                     messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
                     return render(request, 'website/transact.html')
-                if float(amount) > senderAccount.balance - 10000:
-                    isValidated = False
+                if float(amount) > sender_account.balance - 10000:
+                    is_validated = False
                     return render(request, 'website/transact.html')
                 if float(amount) > 100000:
-                    isValidated = False
+                    is_validated = False
                 else:
-                    if amount < senderAccount.balance - 10000:
-                        senderAccount.balance -= amount
-                        recipientAccount.balance += amount
-                        senderAccount.save()
-                        recipientAccount.save()
-                        isValidated = True
+                    if amount < sender_account.balance - 10000:
+                        sender_account.balance -= amount
+                        recipient_account.balance += amount
+                        sender_account.save()
+                        recipient_account.save()
+                        is_validated = True
                     else:
                         #Return error saying atleast 10000 balance should be there
-                        isValidated = False
+                        is_validated = False
                         messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
                         return render(request, 'website/transact.html')
 
@@ -159,14 +159,16 @@ def transact(request):
                     result = r.json()
                     if result['success']:
                         transaction = Transaction.create(   amount=amount, sender=request.user,
-                                                            recipientAccount=recipientAccount,
-                                                            senderAccount=senderAccount,
+                                                            recipient_account=recipient_account,
+                                                            sender_account=sender_account,
                                                             signator=signator,
-                                                            isValidated=isValidated
+                                                            is_validated=is_validated
                                                         )
                         transaction.save()
-                        return render(request, 'website/transact.html')
+                        return render(request, 'website/index.html')
                     else:
+                        messages.error(
+                            request, 'Invalid Captcha')
                         return render(request, 'website/transact.html', context={"form": form})
 
         return render(request, 'website/transact.html', context={'form':form})
@@ -182,7 +184,22 @@ def manage_transaction(request):
         employee_object = Employee.objects.filter(user=request.user)[0]
         transactions = Transaction.objects.filter(signator=employee_object)
 
-    return render(request, 'website/manage_transactions.html', context={"all_transactions": transactions})
+    pending_transactions = []
+    approved_transactions = []
+
+    for transaction in transactions:
+        if transaction.is_validated:
+            approved_transactions.append(transaction)
+        else:
+            pending_transactions.append(transaction)
+
+    return render(  request, 
+                    'website/manage_transactions.html', 
+                    context={   "pending_transactions": pending_transactions, 
+                                "approved_transactions": approved_transactions
+                            }
+                )
+
 def profile_user(request):
     form = ProfileUpdateForm
     profile = request.user.id
@@ -219,7 +236,7 @@ def history(request):
         user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
     user_account_number = user_account.acc_number
     user_account_balance = user_account.balance
-    received_transactions = Transaction.objects.filter(recipientAccount=user_account)
+    received_transactions = Transaction.objects.filter(recipient_account=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
 
     return render(
@@ -242,7 +259,7 @@ def statement(request):
         user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
     user_account_number = user_account.acc_number
     user_account_balance = user_account.balance
-    received_transactions = Transaction.objects.filter(recipientAccount=user_account)
+    received_transactions = Transaction.objects.filter(recipient_account=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
 
     response = HttpResponse(content_type='text/csv')
@@ -255,23 +272,57 @@ def statement(request):
         transaction = user_transactions[transaction_counter]
 
         transaction_type = ""
-        if user_account_number == transaction.senderAccount.acc_number:
+        if user_account_number == transaction.sender_account.acc_number:
             transaction_type = "Debit"
         else:
             transaction_type = "Credit"
 
         validation_status = ""
-        if transaction.isValidated:
+        if transaction.is_validated:
             validation_status = "Success"
         else:
             validation_status = "Pending"
 
         writer.writerow([str(transaction_counter + 1),
-                        transaction.senderAccount.acc_number,
-                        transaction.recipientAccount.acc_number,
+                        transaction.sender_account.acc_number,
+                        transaction.recipient_account.acc_number,
                         transaction_type,
                         str(transaction.amount),
                         transaction.timestamp,
                         validation_status])
 
     return response
+
+
+@login_required(login_url="/")
+@group_required('System Manager', 'Employee')
+def approve(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            transaction_id = request.POST['transaction_id']
+            if not transaction_id.isdigit():
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html')
+            try:
+                transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
+            except:
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html')
+            
+            sender_account = transaction.sender_account
+            recipient_account = transaction.recipient_account
+            amount = transaction.amount
+            sender_account.balance -= amount
+            recipient_account.balance += amount
+            sender_account.save()
+            recipient_account.save()
+            transaction.is_validated = True
+            transaction.save()
+
+            return HttpResponseRedirect('manage_transaction.php')
+        else:
+            return render('website/manage_transactions.html')
+    else:
+        return render('website/login.html')

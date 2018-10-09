@@ -35,16 +35,16 @@
                         {% for transaction in user_transactions %}
                         <tr>
                             <th scope="row">{{ forloop.counter }}</th>
-                            <td>{{ transaction.senderAccount.acc_number }}</td>
-                            <td>{{ transaction.recipientAccount.acc_number }}</td>
-                            {% if user_account_number == transaction.senderAccount.acc_number %}
+                            <td>{{ transaction.sender_account.acc_number }}</td>
+                            <td>{{ transaction.recipient_account.acc_number }}</td>
+                            {% if user_account_number == transaction.sender_account.acc_number %}
                                 <td>Debit</td>
                             {% else %}
                                 <td>Credit</td>
                             {% endif %}
                             <td>{{ transaction.amount }}</td>
                             <td>{{ transaction.timestamp }}</td>
-                            {% if transaction.isValidated == True %}
+                            {% if transaction.is_validated == True %}
                                 <td>Success</td>
                             {% else %}
                                 <td>Pending</td>

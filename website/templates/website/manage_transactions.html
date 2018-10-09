@@ -8,10 +8,64 @@
         <div class="contact-inner padding-manage-transactions">
             <div class="contact-overly"></div>
             <div class="container ">
+                 {% if messages %} {% for message in messages %}
+                <div class="alert alert-{{ messaage.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %} {% endif %}
+                {% if pending_transactions|length > 0 %}
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="section-headline text-center">
+                                <h2>Pending Transactions</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Sender Account</th>
+                                    <th scope="col">Recepient Account</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Timestamp</th>
+                                    <th scope="col">Approve</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in pending_transactions %}
+                                <tr>
+                                    <th scope="row">{{ forloop.counter }}</th>
+                                    <td>{{ transaction.sender_account.acc_number }}</td>
+                                    <td>{{ transaction.recipient_account.acc_number }}</td>
+                                    <td>{{ transaction.amount }}</td>
+                                    <td>{{ transaction.timestamp }}</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'approve_transaction' %}">
+                                            {% csrf_token %}
+                                            <input hidden readonly name="transaction_id" value={{ transaction.transaction_id }} />
+                                            <input class="btn-primary" type="submit" name="approve_transaction" value="Approve" />
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
                 <div class="row">
                     <div class="col-md-12 col-sm-12 col-xs-12">
                         <div class="section-headline text-center">
-                            <h2>Transactions</h2>
+                            <h2>No Pending Transactions</h2>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="section-headline text-center">
+                            <h2>Approved Transactions</h2>
                         </div>
                     </div>
                 </div>
@@ -24,18 +78,18 @@
                                 <th scope="col">Recepient Account</th>
                                 <th scope="col">Amount</th>
                                 <th scope="col">Timestamp</th>
-                                <th scope="col">Validated</th>
+                                <th scope="col">Approved By</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for transaction in all_transactions %}
+                            {% for transaction in approved_transactions %}
                                 <tr>
                                     <th scope="row">{{ forloop.counter }}</th>
-                                    <td>{{ transaction.senderAccount.acc_number }}</td>
-                                    <td>{{ transaction.recipientAccount.acc_number }}</td>
+                                    <td>{{ transaction.sender_account.acc_number }}</td>
+                                    <td>{{ transaction.recipient_account.acc_number }}</td>
                                     <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.timestamp }}</td>
-                                    <td>{{ transaction.isValidated }}</td>
+                                    <td>{{ transaction.signator.user.username }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

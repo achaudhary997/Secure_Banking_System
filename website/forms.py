@@ -90,3 +90,4 @@ class ProfileUpdateForm(forms.ModelForm):
         else:
             raise forms.ValidationError("Enter Contact Number.")
         return contact
+
