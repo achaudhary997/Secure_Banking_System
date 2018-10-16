@@ -8,14 +8,14 @@ from two_factor.urls import urlpatterns as tf_urls
 handler404 = views.handle_404
 
 urlpatterns = [
-	url(r'', include(tf_urls)),
+	path('', include(tf_urls)),
     path('', views.index, name="home"),
+    
     # AUTH URLS
 
     path('profile.html', views.profile_user, name="profile"),
-    path('login.jsp', views.login_user, name="login"),
     path('logout.aspx', views.logout_user, name="logout"),
-    # path('register.php', views.register_user, name="register"),
+    path('account/two_factor/', views.login_user, name="login"),
 
     # TRANSACTION URLS
 

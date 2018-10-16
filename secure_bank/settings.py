@@ -145,6 +145,6 @@ else:
 	WEBSITE_NAME = "GoldWomanSachs"
 	WEBSITE_BASE_NAME = "WomanSachs"
 
+# TWO FACTOR
 
-
-# print (os.environ.get('sober'))
+LOGIN_REDIRECT_URL = "home"
