@@ -3,6 +3,7 @@ from django.urls import path, include
 import website
 
 # handler404 = views.handle404
+# handler404 = website.views.handler404
 
 urlpatterns = [
     path('admin', admin.site.urls),

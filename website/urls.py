@@ -5,8 +5,9 @@ from . import views
 
 from two_factor.urls import urlpatterns as tf_urls
 
-handler404 = views.handle_404
+# handler404 = views.handle_404
 # handler404 = 'website.views.handle404'
+handler404 = views.handler404
 
 
 urlpatterns = [

@@ -8,15 +8,14 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse, HttpResponseNotFound
 from .decorators import *
 from itertools import chain
 from django.http import HttpResponse
 import csv
 
-def handle_404(request):
-    response = render_to_response('website/404.html',context_instance=RequestContext(request))
-    response.status_code = 404
-    return response
+def handler404(request):
+    return render(request, '404.html', status=404)
 
 
 def index(request):
