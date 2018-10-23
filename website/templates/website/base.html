@@ -73,7 +73,9 @@
                                       <li><a class="page-scroll" href="{% url 'manage_transaction' %}">Manage Transactions</a></li>
                                   {% endif %}
                                   {% comment %} <li><a class="page-scroll" href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
-                                  <li><a class="page-scroll" href="{% url 'profile' %}">Profile</a></li>
+                                  {% if not user.is_superuser %}
+                                    <li><a class="page-scroll" href="{% url 'profile' %}">Profile</a></li>
+                                  {% endif %}
                                   <li><a class="page-scroll" href="{% url 'logout' %}">Logout</a></li>
                               {% endif %}
                             </ul>
