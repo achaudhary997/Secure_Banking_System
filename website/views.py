@@ -1,4 +1,5 @@
-from django.shortcuts import render, redirect, HttpResponseRedirect
+from django.shortcuts import render, redirect, HttpResponseRedirect, render_to_response
+from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm
@@ -13,7 +14,9 @@ from django.http import HttpResponse
 import csv
 
 def handle_404(request):
-    return render(request, 'website/404.html', staus=404)
+    response = render_to_response('website/404.html',context_instance=RequestContext(request))
+    response.status_code = 404
+    return response
 
 
 def index(request):
@@ -326,3 +329,4 @@ def approve(request):
             return render('website/manage_transactions.html')
     else:
         return render('website/login.html')
+
