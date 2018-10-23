@@ -100,7 +100,7 @@ class Transaction(models.Model):
     recipient_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
     signator = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="signator") # change to integer and add sys manager signator
     timestamp = models.DateTimeField(auto_now_add=True)
-    is_validated = models.BooleanField(default=False)
+    is_validated = models.IntegerField(default=0)
     
     @classmethod
     def create(self, amount, sender, recipient_account, sender_account, signator, is_validated):

@@ -137,7 +137,7 @@ def transact(request):
                 if float(amount) > 100000:
                     is_validated = False
                 else:
-                    if amount < sender_account.balance - 10000:
+                    if amount < (sender_account.balance - 10000):
                         sender_account.balance -= amount
                         recipient_account.balance += amount
                         sender_account.save()
@@ -190,7 +190,7 @@ def manage_transaction(request):
     approved_transactions = []
 
     for transaction in transactions:
-        if transaction.is_validated:
+        if transaction.is_validated != settings.STATUS_PENDING:
             approved_transactions.append(transaction)
         else:
             pending_transactions.append(transaction)
@@ -280,10 +280,12 @@ def statement(request):
             transaction_type = "Credit"
 
         validation_status = ""
-        if transaction.is_validated:
-            validation_status = "Success"
-        else:
+        if transaction.is_validated == settings.STATUS_PENDING:
             validation_status = "Pending"
+        elif transaction.is_validated == settings.STATUS_DECLINED:
+            validation_status = "Declined"
+        elif transaction.is_validated == settings.STATUS_APPROVED:
+            validation_status = "Approved"
 
         writer.writerow([str(transaction_counter + 1),
                         transaction.sender_account.acc_number,
@@ -301,27 +303,45 @@ def statement(request):
 def approve(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            transaction_id = request.POST['transaction_id']
-            if not transaction_id.isdigit():
-                messages.error(
-                    request, 'Dont tamper with the request -_-')
-                return render(request, 'website/manage_transactions.html')
-            try:
-                transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
-            except:
-                messages.error(
-                    request, 'Dont tamper with the request -_-')
-                return render(request, 'website/manage_transactions.html')
-            
-            sender_account = transaction.sender_account
-            recipient_account = transaction.recipient_account
-            amount = transaction.amount
-            sender_account.balance -= amount
-            recipient_account.balance += amount
-            sender_account.save()
-            recipient_account.save()
-            transaction.is_validated = True
-            transaction.save()
+
+            if request.POST.get("approve_transaction"):
+                transaction_id = request.POST['transaction_id']
+                if not transaction_id.isdigit():
+                    messages.error(
+                        request, 'Dont tamper with the request -_-')
+                    return render(request, 'website/manage_transactions.html')
+                try:
+                    transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
+                except:
+                    messages.error(
+                        request, 'Dont tamper with the request -_-')
+                    return render(request, 'website/manage_transactions.html')
+                
+                sender_account = transaction.sender_account
+                recipient_account = transaction.recipient_account
+                amount = transaction.amount
+                sender_account.balance -= amount
+                recipient_account.balance += amount
+                sender_account.save()
+                recipient_account.save()
+                transaction.is_validated = settings.STATUS_APPROVED
+                transaction.save()
+                
+            elif request.POST.get("decline_transaction"):
+                transaction_id = request.POST['transaction_id']
+                if not transaction_id.isdigit():
+                    messages.error(
+                        request, 'Dont tamper with the request -_-')
+                    return render(request, 'website/manage_transactions.html')
+                try:
+                    transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
+                except:
+                    messages.error(
+                        request, 'Dont tamper with the request -_-')
+                    return render(request, 'website/manage_transactions.html')
+        
+                transaction.is_validated = settings.STATUS_DECLINED
+                transaction.save()
 
             return HttpResponseRedirect('manage_transaction.php')
         else:

@@ -46,6 +46,7 @@
                                             {% csrf_token %}
                                             <input hidden readonly name="transaction_id" value={{ transaction.transaction_id }} />
                                             <input class="btn-primary" type="submit" name="approve_transaction" value="Approve" />
+                                            <input class="btn-primary" type="submit" name="decline_transaction" value="Decline" />
                                         </form>
                                     </td>
                                 </tr>
@@ -62,39 +63,49 @@
                     </div>
                 </div>
                 {% endif %}
-                <div class="row" style="margin-top: 50px">
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        <div class="section-headline text-center">
-                            <h2>Approved Transactions</h2>
+                {% if approved_transactions %}
+                    <div class="row" style="margin-top: 70px">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="section-headline text-center">
+                                <h2>Approved Transactions</h2>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Sender Account</th>
-                                <th scope="col">Recepient Account</th>
-                                <th scope="col">Amount</th>
-                                <th scope="col">Timestamp</th>
-                                <th scope="col">Approved By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in approved_transactions %}
+                    <div class="row">
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <th scope="row">{{ forloop.counter }}</th>
-                                    <td>{{ transaction.sender_account.acc_number }}</td>
-                                    <td>{{ transaction.recipient_account.acc_number }}</td>
-                                    <td>{{ transaction.amount }}</td>
-                                    <td>{{ transaction.timestamp }}</td>
-                                    <td>{{ transaction.signator.user.username }}</td>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Sender Account</th>
+                                    <th scope="col">Recepient Account</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Timestamp</th>
+                                    <th scope="col">Approved By</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {% for transaction in approved_transactions %}
+                                    <tr>
+                                        <th scope="row">{{ forloop.counter }}</th>
+                                        <td>{{ transaction.sender_account.acc_number }}</td>
+                                        <td>{{ transaction.recipient_account.acc_number }}</td>
+                                        <td>{{ transaction.amount }}</td>
+                                        <td>{{ transaction.timestamp }}</td>
+                                        <td>{{ transaction.signator.user.username }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="row" style="margin-top: 100px">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="section-headline text-center">
+                                <h2>No Approved Transactions</h2>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

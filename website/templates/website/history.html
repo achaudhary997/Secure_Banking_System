@@ -44,8 +44,10 @@
                             {% endif %}
                             <td>{{ transaction.amount }}</td>
                             <td>{{ transaction.timestamp }}</td>
-                            {% if transaction.is_validated == True %}
-                                <td>Success</td>
+                            {% if transaction.is_validated == status_declined %}
+                                <td>Declined</td>
+                            {% elif transaction.is_validated == status_approved %}
+                                <td>Approved</td>
                             {% else %}
                                 <td>Pending</td>
                             {% endif %}
