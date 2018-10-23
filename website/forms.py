@@ -3,6 +3,15 @@ from .models import Profile, Transaction, Account, ProfileModificationReq
 from django.contrib.auth.models import User
 import re
 
+SEARCH_CHOICES = [
+    ('user', 'Username'),
+    ('acc_num', 'Account Number'),
+    ('transaction_status', 'Transaction Status'),
+    ('sent', 'Sent To (Account Number or Username)'),
+    ('received', 'Received From (Account Number or Username)'),
+    # ('date', 'Date')
+]
+
 class UserProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
@@ -91,3 +100,10 @@ class ProfileUpdateForm(forms.ModelForm):
             raise forms.ValidationError("Enter Contact Number.")
         return contact
 
+class SearchForm(forms.Form):
+    search_parameter = forms.CharField(required=True, label='', 
+                            widget=forms.TextInput(attrs={
+                                    'placeholder': 'Search Here!',
+                                    'class': 'form-control'
+                                }))
+    filter_type = forms.CharField(widget=forms.Select(choices=SEARCH_CHOICES), label='Filter')

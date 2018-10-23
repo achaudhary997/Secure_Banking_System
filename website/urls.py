@@ -25,6 +25,7 @@ urlpatterns = [
     path('transact.html', views.transact, name="transact"),
     path('manage_transaction.php', views.manage_transaction, name="manage_transaction"),
     path('history.html', views.history, name="history"),
+    path('search.aspx', views.search, name="search"),
     path('statement.pl', views.statement, name="get_statement"),
     path('approve.jsp', views.approve, name="approve_transaction"),
 

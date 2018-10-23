@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, HttpResponseRedirect, render_to_r
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
 import requests
-from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm
+from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm, SearchForm
 from .models import Transaction, Profile, Account, CustomerIndividual, Employee
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -243,15 +243,105 @@ def history(request):
     received_transactions = Transaction.objects.filter(recipient_account=user_account)
     user_transactions = list(chain(sent_transactions, received_transactions))
 
+    search_form = SearchForm
+
     return render(
                     request,
                     'website/history.html',
                     context={
                                 "user_transactions": user_transactions,
                                 "user_account_number": user_account_number,
-                                "user_account_balance": user_account_balance
+                                "user_account_balance": user_account_balance,
+                                "search_form": search_form
                             }
                 )
+
+def check_valid_int(string):
+    try:
+        s = int(string)
+        if s < 0:
+            return False
+        return True
+    except ValueError:
+        return False
+
+
+@login_required(login_url="/")
+def search(request):
+    if request.method == "POST":
+        search_form = SearchForm(request.POST)
+        if search_form.is_valid():
+            search_parameter = search_form.cleaned_data['search_parameter']
+            filter_type = search_form.cleaned_data['filter_type']
+
+            sent_transactions = Transaction.objects.filter(sender=request.user)
+            user_account = Account.objects.filter(
+                                user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+            user_account_number = user_account.acc_number
+            user_account_balance = user_account.balance
+            received_transactions = Transaction.objects.filter(recipient_account=user_account)
+            user_transactions = list(chain(sent_transactions, received_transactions))
+
+            filtered_transactions = list()
+
+            if filter_type == "user":
+                for transaction in user_transactions:
+                    if transaction.sender.username == search_parameter or transaction.recipient_account.user.user.username == search_parameter:
+                        filtered_transactions.append(transaction)
+            elif filter_type == "acc_num":
+                if check_valid_int(search_parameter):
+                    search_parameter = int(search_parameter)
+                    for transaction in user_transactions:
+                        if transaction.sender_account.acc_number == search_parameter or transaction.recipient_account.acc_number == search_parameter:
+                            filtered_transactions.append(transaction)
+                else:
+                    messages.error(request, "You're smart. But we're smarter.")
+            # elif filter_type == "date":
+            #     pass
+            elif filter_type == "sent":
+                if check_valid_int(search_parameter):
+                    search_parameter = int(search_parameter)
+                    for transaction in user_transactions:
+                        if transaction.recipient_account.acc_number == search_parameter:
+                            filtered_transactions.append(transaction)
+                else:
+                    for transaction in user_transactions:
+                        if transaction.recipient_account.user.user.username == search_parameter:
+                            filtered_transactions.append(transaction)
+            elif filter_type == "received":
+                if check_valid_int(search_parameter):
+                    search_parameter = int(search_parameter)
+                    for transaction in user_transactions:
+                        if transaction.sender.acc_number == search_parameter:
+                            filtered_transactions.append(transaction)
+                else:
+                    for transaction in user_transactions:
+                        if transaction.sender.username == search_parameter:
+                            filtered_transactions.append(transaction)
+            elif filter_type == "transaction_status":
+                tampered = False
+
+                if search_parameter.lower() == "declined":
+                    search_parameter = settings.STATUS_DECLINED
+                elif search_parameter.lower() == "accepted" or search_parameter.lower() == "approved":
+                    search_parameter = settings.STATUS_APPROVED
+                elif search_parameter.lower() == "pending":
+                    search_parameter = settings.STATUS_PENDING
+                else:
+                    messages.error(request, "You're smart. But we're smarter.")
+                    tampered = True
+
+                if not tampered:
+                    for transaction in user_transactions:
+                        if transaction.is_validated == search_parameter:
+                            filtered_transactions.append(transaction)
+            else:
+                messages.error(request, "You're smart. But we're smarter.")
+            return render(request, 'website/search.html', 
+                context={
+                    'filtered_transactions': filtered_transactions
+                })
+    return redirect('history')
 
 
 @login_required(login_url="/")
@@ -309,7 +399,7 @@ def approve(request):
             if request.POST.get("approve_transaction"):
                 transaction_id = request.POST['transaction_id']
                 if not transaction_id.isdigit():
-                    messages.error(
+                    messages.error(messages.
                         request, 'Dont tamper with the request -_-')
                     return render(request, 'website/manage_transactions.html')
                 try:

@@ -18,6 +18,25 @@
             <div class="row" style="margin-bottom: 20px">
                 <h4>Your Account Balance: INR {{user_account_balance}}</h4>
             </div>
+            {% if messages %} 
+                {% for message in messages %}
+                    <div class="alert alert-{{ messaage.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %} 
+            {% endif %}
+            <div class="text-center form contact-form" style="margin-bottom: 50px">
+                <form action="{% url 'search' %}" method="POST">
+                    {% csrf_token %}
+                    {% for field in search_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                    <div class="text-center"><button type="submit">Search</button></div>
+                </form>
+            </div>
             <div class="row">
                 <table class="table">
                     <thead>
