@@ -182,6 +182,8 @@ def transact(request):
 def manage_transaction(request):
     if request.user.groups.filter(name='System Manager').exists():
         transactions = Transaction.objects.all()
+    elif request.user.is_superuser:
+        transactions = Transaction.objects.all()
     else:
         employee_object = Employee.objects.filter(user=request.user)[0]
         transactions = Transaction.objects.filter(signator=employee_object)
