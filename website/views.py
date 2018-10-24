@@ -54,10 +54,10 @@ def login_user(request):
                                 return redirect('otp_setup')
                         else:
                             messages.error(request, 'Incorrect Username or Password.')
-                        return render(request, 'website/login.html')
-                    else:
-                        messages.error(request, 'Captcha Not Verified.')
-                        return render(request, 'website/login.html')
+                       
+                else:
+                    messages.error(request, 'Captcha not verified')
+                    return render(request, 'website/login.html', context={'form': login_form})
         return render(request, 'website/login.html', context=None)
     else:
         return render(request, 'website/index.html', context=None)
