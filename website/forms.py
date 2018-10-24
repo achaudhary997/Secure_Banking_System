@@ -52,7 +52,7 @@ class TransactionForm(forms.Form):
         acc_num = self.cleaned_data['acc_num']
         if acc_num:
             if acc_num <= 0:
-                print ("HEREINVALID")
+                # print ("HEREINVALID")
                 raise forms.ValidationError("Invalid Account Number.")
         else:
             raise forms.ValidationError("Enter Account Number.")
