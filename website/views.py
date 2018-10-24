@@ -191,6 +191,8 @@ def manage_transaction(request):
     pending_transactions = []
     approved_transactions = []
 
+    search_form = SearchForm
+
     for transaction in transactions:
         if transaction.is_validated != settings.STATUS_PENDING:
             approved_transactions.append(transaction)
@@ -200,7 +202,8 @@ def manage_transaction(request):
     return render(  request, 
                     'website/manage_transactions.html', 
                     context={   "pending_transactions": pending_transactions, 
-                                "approved_transactions": approved_transactions
+                                "approved_transactions": approved_transactions,
+                                "search_form": search_form
                             }
                 )
 
@@ -233,7 +236,7 @@ def profile_user(request):
 
 
 @login_required(login_url="/")
-@group_required('Individual Customer', 'Merchant')
+@group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
 def history(request):
     sent_transactions = Transaction.objects.filter(sender=request.user)
     user_account = Account.objects.filter(
@@ -265,8 +268,8 @@ def check_valid_int(string):
     except ValueError:
         return False
 
-
 @login_required(login_url="/")
+@group_required('Individual Customer', 'Merchant')
 def search(request):
     if request.method == "POST":
         search_form = SearchForm(request.POST)
