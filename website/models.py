@@ -13,8 +13,10 @@ class Profile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_profile")
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True) # validators should be a list
-
+    
     # Info for KYC
+    aadhar_number = models.CharField(default="NONE", max_length=15, blank=False)
+
     # Assign common permissions for all types of users
 
     class Meta:
@@ -116,6 +118,8 @@ class ProfileModificationReq(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
+    aadhar_number = models.CharField(default="NONE", max_length=15, blank=False)
+
 
     def __str__(self):
         return "User: " + str(self.user.username)

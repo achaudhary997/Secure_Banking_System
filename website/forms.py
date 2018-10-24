@@ -57,6 +57,7 @@ class RegisterForm(forms.ModelForm):
     password = forms.CharField(max_length=20, required=True)
     address = forms.CharField(max_length=100, required=True)
     contact = forms.CharField(max_length=15)
+    aadhar_number = forms.CharField(max_length=12, required=True)
 
     class Meta:
         model = User
@@ -66,7 +67,8 @@ class RegisterForm(forms.ModelForm):
                     'email_address', 
                     'password', 
                     'address', 
-                    'contact')
+                    'contact',
+                    'aadhar_number')
 
     def clean_contact(self):
         contact = self.cleaned_data.get('contact')
@@ -78,6 +80,15 @@ class RegisterForm(forms.ModelForm):
         else:
             raise forms.ValidationError("Enter Contact Number.")
         return contact
+
+    def clean_aadhar(self):
+        aadhar_number = self.clean_data.get('aadhar_number')
+        if aadhar_number:
+            if len(aadhar_number != 12):
+                raise forms.ValidationError("Invalid Aadhar Number")
+        else:
+            raise forms.ValidationError("Enter Aadhar Number")
+        return aadhar_number
 
 class ProfileUpdateForm(forms.ModelForm):
     address = forms.CharField(max_length=100, required=True)
