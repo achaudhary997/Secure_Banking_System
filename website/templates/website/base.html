@@ -12,9 +12,13 @@
 
   <link rel="shortcut icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
   <link rel="icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
+  <link rel="stylesheet" href="{% static 'website/css/jQKeyboard.css' %}">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,600,700|Raleway:300,400,400i,500,500i,700,800,900" rel="stylesheet">
+
+  <!-- Jquery Library Google CDN Link -->
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
 
   <!-- Bootstrap CSS File -->
   <link href="{% static 'website/lib/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -120,11 +124,15 @@
   <script src="{% static 'website/lib/wow/wow.min.js' %}"></script>
   <script src="{% static 'website/lib/parallax/parallax.js' %}"></script>
   <script src="{% static 'website/lib/easing/easing.min.js' %}"></script>
-  <script src="{% static 'website/lib/nivo-slider/js/jquery.nivo.slider.js' %}""></script>
+  <script src="{% static 'website/lib/nivo-slider/js/jquery.nivo.slider.js' %}"></script>
   <script src="{% static 'website/lib/appear/jquery.appear.js' %}"></script>
   <script src="{% static 'website/lib/isotope/isotope.pkgd.min.js' %}"></script>
+  <script src="{% static 'website/js/jQKeyboard.js' %}"></script>
 
   <script src="{% static 'website/js/main.js' %}"></script>
+  <script>
+    $("input").initKeypad();
+  </script>
 </body>
 
 </html>

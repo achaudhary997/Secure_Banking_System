@@ -108,6 +108,7 @@ def register_user(request):
                         profile.user_id = user.id
                         profile.address = register_form.cleaned_data['address']
                         profile.phone_number = register_form.cleaned_data['contact']
+                        profile.aadhar_number = register_form.cleaned_data['aadhar_number']
                         profile.save()
 
                         email = register_form.cleaned_data['email_address']
