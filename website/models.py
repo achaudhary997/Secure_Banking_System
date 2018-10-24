@@ -13,17 +13,11 @@ class Profile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_profile")
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True) # validators should be a list
-<<<<<<< HEAD
     otp_secret = models.CharField(default="NONE", max_length=16)
 
     # Info for KYC
     aadhar_number = models.CharField(
         default="NONE", max_length=15, blank=False)
-=======
-    
-    # Info for KYC
-    aadhar_number = models.CharField(default="NONE", max_length=15, blank=False)
->>>>>>> 67bff64698af42a143c81e3a0460b2f39b51c126
 
     # Assign common permissions for all types of users
 
@@ -127,13 +121,8 @@ class ProfileModificationReq(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
-<<<<<<< HEAD
     aadhar_number = models.CharField(
         default="NONE", max_length=15, blank=False)
-=======
-    aadhar_number = models.CharField(default="NONE", max_length=15, blank=False)
-
->>>>>>> 67bff64698af42a143c81e3a0460b2f39b51c126
 
     def __str__(self):
         return "User: " + str(self.user.username)
