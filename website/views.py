@@ -17,6 +17,27 @@ import pyotp
 from random import randint
 import pyqrcode
 
+# LOGGING ############
+import os, sys
+import logging, logging.config
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    }
+}
+logging.config.dictConfig(LOGGING)
+logging.info("HELLO")
+#######################
+
 def handler404(request):
     return render(request, '404.html', status=404)
 
@@ -117,7 +138,7 @@ def register_user(request):
                             print(match)
                             messages.error(request, "User with this email already exists.")
                             user.delete()
-                            return render(request, 'website/register.html', context={"form": form})
+                            return render(request, 'website/register.html', context={'form': register_form})
                         except User.DoesNotExist:
                             pass
                         user.email = email
@@ -125,8 +146,9 @@ def register_user(request):
                         user.save()
                         login(request, user)
                         return redirect('home')
-                    else:
-                        return render(request, 'website/register.html', context={"form": form})
+                else:
+                    messages.error(request, 'Captcha not verified')
+                    return render(request, 'website/register.html', context={'form': register_form})
         return render(request, 'website/register.html', context={"form": form})
     else:
         return render(request, 'website/index.html')
@@ -151,10 +173,15 @@ def transact(request):
                 otp = transact_form.cleaned_data['otp']
                 profile = Profile.objects.filter(user=request.user)[0]
                 totp = pyotp.TOTP(profile.otp_secret)
+                logging.info("BEFOREOTP")
                 if not totp.verify(otp):
                     messages.error(
                         request, 'Tx Declined - Invalid OTP')
-                    return render(request, 'website/transact.html')
+                    return render(request, 'website/transact.html', context={'form': transact_form})
+
+                # print ("DEBUG: HERE")
+                logging.info("DEBUG: " )
+                logging.info("DEBUG: " )
 
                 recipient_account = Account.objects.filter(acc_number=acc_num)[0]
                 sender_account = Account.objects.filter(
@@ -162,18 +189,19 @@ def transact(request):
 
                 signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
 
-                print (type(recipient_account).__name__)
                 if recipient_account is None:
-                    return render(request, 'website/index.html')
+                    messages.error(request, 'Tx Declined - Please enter a valid account number.')
+                    return render(request, 'website/index.html', context={'form': transact_form})
                 if recipient_account == sender_account:
                     messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
-                    return render(request, 'website/transact.html')
+                    return render(request, 'website/transact.html', context={'form': transact_form})
                 if float(amount) <= 0:
                     messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
-                    return render(request, 'website/transact.html')
+                    return render(request, 'website/transact.html', context={'form': transact_form})
                 if float(amount) > sender_account.balance - 10000:
-                    is_validated = settings.STATUS_DECLINED
-                    return render(request, 'website/transact.html')
+                    # is_validated = settings.STATUS_DECLINED
+                    messages.error(request, "Tx Declined - Ha! You're smart, we're smarter.")
+                    return render(request, 'website/transact.html', context={'form': transact_form})
                 if float(amount) > 100000:
                     is_validated = settings.STATUS_PENDING
                 else:
@@ -187,33 +215,19 @@ def transact(request):
                         #Return error saying atleast 10000 balance should be there
                         is_validated = settings.STATUS_DECLINED
                         messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
-                        return render(request, 'website/transact.html')
+                        return render(request, 'website/transact.html', context={'form': transact_form})
 
+                transaction = Transaction.create(   amount=amount, sender=request.user,
+                                                    recipient_account=recipient_account,
+                                                    sender_account=sender_account,
+                                                    signator=signator,
+                                                    is_validated=is_validated
+                                                )
+                transaction.save()
+                return render(request, 'website/index.html')
+                
 
-                recaptcha_response = request.POST.get('g-recaptcha-response')
-                if recaptcha_response:
-                    url = 'https://www.google.com/recaptcha/api/siteverify'
-                    data = {
-                        'secret': settings.RECAPTCHA_SECRET,
-                        'response': recaptcha_response
-                    }
-                    r = requests.post(url, data=data)
-                    result = r.json()
-                    if result['success']:
-                        transaction = Transaction.create(   amount=amount, sender=request.user,
-                                                            recipient_account=recipient_account,
-                                                            sender_account=sender_account,
-                                                            signator=signator,
-                                                            is_validated=is_validated
-                                                        )
-                        transaction.save()
-                        return render(request, 'website/index.html')
-                    else:
-                        messages.error(
-                            request, 'Invalid Captcha')
-                        return render(request, 'website/transact.html', context={"form": form})
-
-        return render(request, 'website/transact.html', context={'form':form})
+        return render(request, 'website/transact.html')
     else:
         return render(request, 'website/index.html')
 
@@ -388,7 +402,8 @@ def search(request):
                 messages.error(request, "You're smart. But we're smarter.")
             return render(request, 'website/search.html', 
                 context={
-                    'filtered_transactions': filtered_transactions
+                    'filtered_transactions': filtered_transactions,
+                    'form': search_form,
                 })
     return redirect('history')
 
@@ -450,13 +465,13 @@ def approve(request):
                 if not transaction_id.isdigit():
                     messages.error(messages.
                         request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html')
+                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
                 try:
                     transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
                 except:
                     messages.error(
                         request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html')
+                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
                 
                 sender_account = transaction.sender_account
                 recipient_account = transaction.recipient_account
@@ -473,13 +488,13 @@ def approve(request):
                 if not transaction_id.isdigit():
                     messages.error(
                         request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html')
+                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
                 try:
                     transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
                 except:
                     messages.error(
                         request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html')
+                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
         
                 transaction.is_validated = settings.STATUS_DECLINED
                 transaction.save()

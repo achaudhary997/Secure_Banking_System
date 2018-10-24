@@ -12,6 +12,23 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import sys
+# import logging, logging.config
+
+# LOGGING = {
+#     'version': 1,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'stream': sys.stdout,
+#         }
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'INFO'
+#     }
+# }
+# logging.config.dictConfig(LOGGING)
+# logging.info('Hello')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
