@@ -30,6 +30,7 @@ class LoginForm(forms.Form):
 class TransactionForm(forms.Form):
     amount = forms.FloatField(required=True)
     acc_num = forms.IntegerField(required=True)
+    otp = forms.IntegerField(required=True)
 
     def clean_acc_num(self):
         acc_num = self.cleaned_data['acc_num']
@@ -82,11 +83,13 @@ class RegisterForm(forms.ModelForm):
 class ProfileUpdateForm(forms.ModelForm):
     address = forms.CharField(max_length=100, required=True)
     contact = forms.CharField(max_length=15)
+    aadhar = forms.CharField(max_length=15)
 
     class Meta:
         model = ProfileModificationReq
         fields = (  'address',
-                    'contact')
+                    'contact',
+                    'aadhar')
 
     def clean_contact(self):
         contact = self.cleaned_data.get('contact')

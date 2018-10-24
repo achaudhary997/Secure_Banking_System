@@ -13,8 +13,12 @@ class Profile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_profile")
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True) # validators should be a list
+    otp_secret = models.CharField(default="NONE", max_length=16)
 
     # Info for KYC
+    aadhar_number = models.CharField(
+        default="NONE", max_length=15, blank=False)
+
     # Assign common permissions for all types of users
 
     class Meta:
@@ -55,6 +59,7 @@ class CustomerIndividual(models.Model):
         User, on_delete=models.CASCADE, related_name="user_indi_customer")
     relationship_manager = models.ForeignKey(
         Employee, on_delete=models.CASCADE, related_name="indi_customer_rel_man")
+    
 
     class Meta:
         permissions = (
@@ -72,7 +77,7 @@ class Merchant(models.Model):
         User, on_delete=models.CASCADE, related_name="user_merchant")
     relationship_manager = models.ForeignKey(
         Employee, on_delete=models.CASCADE, related_name="merchant_rel_man")
-    
+
     class Meta:
         permissions = (
             ("authorize_review", "Authorize review of Transactions"),
@@ -116,6 +121,8 @@ class ProfileModificationReq(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
+    aadhar_number = models.CharField(
+        default="NONE", max_length=15, blank=False)
 
     def __str__(self):
         return "User: " + str(self.user.username)

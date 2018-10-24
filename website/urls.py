@@ -3,22 +3,22 @@ from django.urls import path, include
 from django.conf.urls import url
 from . import views
 
-from two_factor.urls import urlpatterns as tf_urls
-
 # handler404 = views.handle_404
 # handler404 = 'website.views.handle404'
 handler404 = views.handler404
 
 
 urlpatterns = [
-	path('', include(tf_urls)),
     path('', views.index, name="home"),
+
+    #OTP Setup URL
+    path('otpsetup.hackme', views.otp_setup, name="otp_setup"),
     
     # AUTH URLS
 
     path('profile.html', views.profile_user, name="profile"),
     path('logout.aspx', views.logout_user, name="logout"),
-    path('account/two_factor/', views.login_user, name="login"),
+    path('login.html', views.login_user, name="login"),
 
     # TRANSACTION URLS
 

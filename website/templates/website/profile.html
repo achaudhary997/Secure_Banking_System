@@ -19,7 +19,7 @@
             <div class="row">
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="form contact-form">
-                        <form action="{% url 'transact' %}" method="post" role="form">
+                        <form action="{% url 'home' %}" method="post" role="form">
                             {% csrf_token %}
                             {% if form.errors %}
                                 {% for field in forms %}
@@ -52,6 +52,13 @@
                             </h4>
                             <div class="form-group">
                                 <input type="text" name="address" class="form-control" required id="id_address" value="{{ address }}" placeholder="Address"/>
+                            </div>
+                            <h4>
+                                Aadhar
+                            </h4>
+                            <div class="form-group">
+                                <input type="text" name="address" class="form-control" required id="id_address" value="{{ aadhar }}" placeholder="Address"
+                                />
                             </div>
                             <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>
                             <div class="text-center"><button type="submit">Request Modification</button></div>

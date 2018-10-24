@@ -13,6 +13,9 @@ from .decorators import *
 from itertools import chain
 from django.http import HttpResponse
 import csv
+import pyotp
+from random import randint
+import pyqrcode
 
 def handler404(request):
     return render(request, '404.html', status=404)
@@ -45,7 +48,10 @@ def login_user(request):
 
                         if user is not None:
                             login(request, user)
-                            return redirect('home')
+                            if check_otp_setup(user):
+                                return redirect('home')
+                            else:
+                                return redirect('otp_setup')
                         else:
                             messages.error(request, 'Incorrect Username or Password.')
                         return render(request, 'website/login.html')
@@ -55,6 +61,29 @@ def login_user(request):
         return render(request, 'website/login.html', context=None)
     else:
         return render(request, 'website/index.html', context=None)
+
+
+@login_required(login_url="/")
+def otp_setup(request):
+    if not check_otp_setup(request.user):
+        secret=pyotp.random_base32()
+        uri=pyotp.totp.TOTP(secret).provisioning_uri(str(request.user.username), issuer_name="GoldWomanSachs")
+        profile = Profile.objects.filter(user=request.user)[0]
+        print (profile)
+        profile.otp_secret=secret
+        profile.save()
+        return render(request, 'website/otpsetup.html', context={"otp":uri})
+    else:
+        return redirect('home')
+
+
+def check_otp_setup(user):
+    profile = Profile.objects.filter(user=user)[0]
+    if profile.otp_secret == "NONE":
+        return False
+    else:
+        return True
+
 
 def register_user(request):
     form = RegisterForm
@@ -107,14 +136,24 @@ def logout_user(request):
         logout(request)
     return render(request, 'website/index.html', context=None)
 
+
 def transact(request):
     form = TransactionForm
     if request.user.is_authenticated:
+        if not check_otp_setup(request.user):
+            return redirect('otp_setup')
         if request.method == 'POST':
             transact_form = TransactionForm(request.POST)
             if transact_form.is_valid():
                 amount = transact_form.cleaned_data['amount']
                 acc_num = transact_form.cleaned_data['acc_num']
+                otp = transact_form.cleaned_data['otp']
+                profile = Profile.objects.filter(user=request.user)[0]
+                totp = pyotp.TOTP(profile.otp_secret)
+                if not totp.verify(otp):
+                    messages.error(
+                        request, 'Tx Declined - Invalid OTP')
+                    return render(request, 'website/transact.html')
 
                 recipient_account = Account.objects.filter(acc_number=acc_num)[0]
                 sender_account = Account.objects.filter(
@@ -132,20 +171,20 @@ def transact(request):
                     messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
                     return render(request, 'website/transact.html')
                 if float(amount) > sender_account.balance - 10000:
-                    is_validated = False
+                    is_validated = settings.STATUS_DECLINED
                     return render(request, 'website/transact.html')
                 if float(amount) > 100000:
-                    is_validated = False
+                    is_validated = settings.STATUS_PENDING
                 else:
                     if amount < (sender_account.balance - 10000):
                         sender_account.balance -= amount
                         recipient_account.balance += amount
                         sender_account.save()
                         recipient_account.save()
-                        is_validated = True
+                        is_validated = settings.STATUS_APPROVED
                     else:
                         #Return error saying atleast 10000 balance should be there
-                        is_validated = False
+                        is_validated = settings.STATUS_DECLINED
                         messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
                         return render(request, 'website/transact.html')
 
@@ -216,8 +255,9 @@ def profile_user(request):
     user_name = curr_user.username
     user_address = profile.address
     user_ph = profile.phone_number
+    aadhar = profile.aadhar
     user_details = {"username": user_name,
-                    "address": user_address, "contact": user_ph}
+                    "address": user_address, "contact": user_ph, "aadhar": aadhar}
     if request.user.is_authenticated:
         if request.method == 'POST':
             profile_update_form = ProfileUpdateForm(request.POST)
@@ -238,26 +278,29 @@ def profile_user(request):
 @login_required(login_url="/")
 @group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
 def history(request):
-    sent_transactions = Transaction.objects.filter(sender=request.user)
-    user_account = Account.objects.filter(
-        user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-    user_account_number = user_account.acc_number
-    user_account_balance = user_account.balance
-    received_transactions = Transaction.objects.filter(recipient_account=user_account)
-    user_transactions = list(chain(sent_transactions, received_transactions))
+    if request.user.is_authenticated:
+        if not check_otp_setup(request.user):
+            return redirect('otp_setup')
+        sent_transactions = Transaction.objects.filter(sender=request.user)
+        user_account = Account.objects.filter(
+            user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+        user_account_number = user_account.acc_number
+        user_account_balance = user_account.balance
+        received_transactions = Transaction.objects.filter(recipient_account=user_account)
+        user_transactions = list(chain(sent_transactions, received_transactions))
 
-    search_form = SearchForm
+        search_form = SearchForm
 
-    return render(
-                    request,
-                    'website/history.html',
-                    context={
-                                "user_transactions": user_transactions,
-                                "user_account_number": user_account_number,
-                                "user_account_balance": user_account_balance,
-                                "search_form": search_form
-                            }
-                )
+        return render(
+                        request,
+                        'website/history.html',
+                        context={
+                                    "user_transactions": user_transactions,
+                                    "user_account_number": user_account_number,
+                                    "user_account_balance": user_account_balance,
+                                    "search_form": search_form
+                                }
+                    )
 
 def check_valid_int(string):
     try:
@@ -272,6 +315,8 @@ def check_valid_int(string):
 @group_required('Individual Customer', 'Merchant')
 def search(request):
     if request.method == "POST":
+        if not check_otp_setup(request.user):
+            return redirect('otp_setup')
         search_form = SearchForm(request.POST)
         if search_form.is_valid():
             search_parameter = search_form.cleaned_data['search_parameter']

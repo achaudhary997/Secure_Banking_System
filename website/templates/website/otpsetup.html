@@ -1,0 +1,18 @@
+{% extends 'website/base.html' %}
+{% block title %} 
+    OTP Setup | {{ website_name }}
+{% endblock %} 
+
+{% block content %}
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container">
+            <h2>
+                OTP Setup
+            </h2>
+            Enter this code in google auth with counter base: {{ otp }}
+        </div>
+    </div>
+</div>
+{% endblock %}
