@@ -256,7 +256,7 @@ def profile_user(request):
     user_name = curr_user.username
     user_address = profile.address
     user_ph = profile.phone_number
-    aadhar = profile.aadhar
+    aadhar = profile.aadhar_number
     user_details = {"username": user_name,
                     "address": user_address, "contact": user_ph, "aadhar": aadhar}
     if request.user.is_authenticated:
