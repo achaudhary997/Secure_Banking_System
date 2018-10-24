@@ -138,17 +138,34 @@ def logout_user(request):
     return render(request, 'website/index.html', context=None)
 
 
+def get_acc_choices(user):
+    profile = Profile.objects.filter(user=user)[0]
+    accounts = Account.objects.filter(user=profile)
+    acc_choices = []
+
+    for account in accounts:
+        acc_choices.append((str(account.acc_number), str(account.acc_number)))
+
+    return acc_choices
+
 def transact(request):
     form = TransactionForm
+    print (form)
     if request.user.is_authenticated:
         if not check_otp_setup(request.user):
             return redirect('otp_setup')
+
+        user_accounts = get_acc_choices(request.user)        
+
+
         if request.method == 'POST':
             transact_form = TransactionForm(request.POST)
             if transact_form.is_valid():
                 amount = transact_form.cleaned_data['amount']
                 acc_num = transact_form.cleaned_data['acc_num']
                 otp = transact_form.cleaned_data['otp']
+                user_account = transact_form.cleaned_data['user_accounts']
+
                 profile = Profile.objects.filter(user=request.user)[0]
                 totp = pyotp.TOTP(profile.otp_secret)
                 if not totp.verify(otp):
@@ -157,10 +174,15 @@ def transact(request):
                     return render(request, 'website/transact.html')
 
                 recipient_account = Account.objects.filter(acc_number=acc_num)[0]
-                sender_account = Account.objects.filter(
-                    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-
+                #sender_account = Account.objects.filter(
+                #    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+                sender_account = Account.objects.filter(acc_number=user_account)[0]
                 signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
+
+                if recipient_account.user == sender_account.user:
+                    transaction_mode = "within own accounts"
+                else:
+                    transaction_mode = "debit"
 
                 print (type(recipient_account).__name__)
                 if recipient_account is None:
@@ -204,16 +226,20 @@ def transact(request):
                                                             recipient_account=recipient_account,
                                                             sender_account=sender_account,
                                                             signator=signator,
-                                                            is_validated=is_validated
+                                                            is_validated=is_validated,
+                                                            transaction_mode=transaction_mode
                                                         )
                         transaction.save()
                         return render(request, 'website/index.html')
                     else:
                         messages.error(
                             request, 'Invalid Captcha')
-                        return render(request, 'website/transact.html', context={"form": form})
-
-        return render(request, 'website/transact.html', context={'form':form})
+                        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            else:
+                messages.error(
+                    request, 'Invalid Details Submitted')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+        return render(request, 'website/transact.html', context={'form':form, "user_accounts": user_accounts})
     else:
         return render(request, 'website/index.html')
 
@@ -282,13 +308,21 @@ def history(request):
     if request.user.is_authenticated:
         if not check_otp_setup(request.user):
             return redirect('otp_setup')
-        sent_transactions = Transaction.objects.filter(sender=request.user)
+        user_transactions = Transaction.objects.filter(sender=request.user)
         user_account = Account.objects.filter(
-            user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-        user_account_number = user_account.acc_number
-        user_account_balance = user_account.balance
-        received_transactions = Transaction.objects.filter(recipient_account=user_account)
-        user_transactions = list(chain(sent_transactions, received_transactions))
+            user=User.objects.get(pk=request.user.id).user_profile.all()[0])
+        user_account_details = []
+        for account in user_account:
+            user_account_details.append([account.acc_number, account.balance])
+            user_transactions = list(
+                chain(user_transactions, Transaction.objects.filter(recipient_account=account)))
+        for transaction in user_transactions:
+            sender_account = transaction.sender_account
+            recipient_account = transaction.recipient_account
+            print (sender_account, recipient_account, user_account)
+            if recipient_account in user_account and sender_account not in user_account:
+                transaction.transaction_mode="credit"
+
 
         search_form = SearchForm
 
@@ -297,8 +331,7 @@ def history(request):
                         'website/history.html',
                         context={
                                     "user_transactions": user_transactions,
-                                    "user_account_number": user_account_number,
-                                    "user_account_balance": user_account_balance,
+                                    "user_account_details": user_account_details,
                                     "search_form": search_form
                                 }
                     )

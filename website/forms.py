@@ -27,10 +27,26 @@ class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
     password = forms.CharField(max_length=20)
 
+
+def get_acc_choices(user):
+    profile = Profile.objects.filter(user=user)[0]
+    accounts = Account.objects.filter(user=profile)
+    acc_choices = []
+    
+    for account in accounts:
+        acc_choices.append((str(account.acc_number), str(account.acc_number)))
+        
+    return acc_choices
+
 class TransactionForm(forms.Form):
+    
+        
     amount = forms.FloatField(required=True)
     acc_num = forms.IntegerField(required=True)
     otp = forms.IntegerField(required=True)
+    user_accounts = forms.CharField(widget=forms.Select(
+        choices=SEARCH_CHOICES))
+    
 
     def clean_acc_num(self):
         acc_num = self.cleaned_data['acc_num']

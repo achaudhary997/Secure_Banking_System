@@ -106,10 +106,11 @@ class Transaction(models.Model):
     signator = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="signator") # change to integer and add sys manager signator
     timestamp = models.DateTimeField(auto_now_add=True)
     is_validated = models.IntegerField(default=0)
+    transaction_mode = models.CharField(default="debit", max_length=20)
     
     @classmethod
-    def create(self, amount, sender, recipient_account, sender_account, signator, is_validated):
-        transaction = self(amount=amount, sender=sender, recipient_account=recipient_account, sender_account=sender_account, signator=signator, is_validated=is_validated)
+    def create(self, amount, sender, recipient_account, sender_account, signator, is_validated, transaction_mode):
+        transaction = self(amount=amount, sender=sender, recipient_account=recipient_account, sender_account=sender_account, signator=signator, is_validated=is_validated, transaction_mode=transaction_mode)
         return transaction
         
 

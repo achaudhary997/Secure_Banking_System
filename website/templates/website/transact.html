@@ -36,6 +36,17 @@
                                 {% endfor %}
                             {% endif %}
                             <h4>
+                                Select User Account:
+                            </h4>
+                            <div class="form-group">
+                                <select name="user_accounts" id="id_user_accounts">
+                                    {% for account in user_accounts %}
+                                        <option value={{account.0}}>{{account.0}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                                
+                            <h4>
                                 Amount:
                             </h4>
                             <div class="form-group">
@@ -53,6 +64,7 @@
                             <div class="form-group">
                                 <input type="number" class="form-control" name="otp" required id="otp" placeholder="Enter OTP" />
                             </div>
+
                             <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>
                             <div class="text-center"><button type="submit">Initiate Transaction</button></div>
                         </form>

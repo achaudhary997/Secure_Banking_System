@@ -12,12 +12,14 @@
                     </div>
                 </div>
             </div>
-            <div class="row" style="margin-bottom: 20px">
-                <h4>Your Account Number: {{user_account_number}}</h4>
-            </div>
-            <div class="row" style="margin-bottom: 20px">
-                <h4>Your Account Balance: INR {{user_account_balance}}</h4>
-            </div>
+            {% for account in user_account_details %}
+                <div class="row" style="margin-bottom: 20px">
+                    <h4>Account Number: {{account.0}}</h4>
+                </div>
+                <div class="row" style="margin-bottom: 20px">
+                    <h4>Your Account Balance: INR {{account.1}}</h4>
+                </div>
+            {% endfor %}
             {% if messages %} 
                 {% for message in messages %}
                     <div class="alert alert-{{ messaage.tags }}">
@@ -56,11 +58,7 @@
                             <th scope="row">{{ forloop.counter }}</th>
                             <td>{{ transaction.sender_account.acc_number }}</td>
                             <td>{{ transaction.recipient_account.acc_number }}</td>
-                            {% if user_account_number == transaction.sender_account.acc_number %}
-                                <td>Debit</td>
-                            {% else %}
-                                <td>Credit</td>
-                            {% endif %}
+                            <td>{{ transaction.transaction_mode }}</td>
                             <td>{{ transaction.amount }}</td>
                             <td>{{ transaction.timestamp }}</td>
                             {% if transaction.is_validated == status_declined %}
