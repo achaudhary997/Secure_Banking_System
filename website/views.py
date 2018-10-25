@@ -76,7 +76,6 @@ def otp_setup(request):
         secret=pyotp.random_base32()
         uri=pyotp.totp.TOTP(secret).provisioning_uri(str(request.user.username), issuer_name="GoldWomanSachs")
         profile = Profile.objects.filter(user=request.user)[0]
-        print (profile)
         profile.otp_secret=secret
         profile.save()
         return render(request, 'website/otpsetup.html', context={"otp":uri})
@@ -121,7 +120,6 @@ def register_user(request):
                         email = register_form.cleaned_data['email_address']
                         try:
                             match = User.objects.get(email=email)
-                            print(match)
                             messages.error(request, "User with this email already exists.")
                             user.delete()
                             return render(request, 'website/register.html', context={'form': register_form})
@@ -318,8 +316,9 @@ def check_valid_int(string):
         return False
 
 @login_required(login_url="/")
-@group_required('Individual Customer', 'Merchant')
+@group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
 def search(request):
+    manager_group = False
     if request.method == "POST":
         if not check_otp_setup(request.user):
             return redirect('otp_setup')
@@ -328,14 +327,31 @@ def search(request):
             search_parameter = search_form.cleaned_data['search_parameter']
             filter_type = search_form.cleaned_data['filter_type']
 
-            sent_transactions = Transaction.objects.filter(sender=request.user)
-            user_account = Account.objects.filter(
-                                user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-            user_account_number = user_account.acc_number
-            user_account_balance = user_account.balance
-            received_transactions = Transaction.objects.filter(recipient_account=user_account)
-            user_transactions = list(chain(sent_transactions, received_transactions))
+            user_transactions = []
 
+            if request.user.groups.filter(name='Individual Customer').exists() or request.user.groups.filter(name='Merchant').exists():
+                sent_transactions = Transaction.objects.filter(sender=request.user)
+                user_account = Account.objects.filter(
+                                    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+                user_account_number = user_account.acc_number
+                user_account_balance = user_account.balance
+                received_transactions = Transaction.objects.filter(recipient_account=user_account)
+                user_transactions = list(chain(sent_transactions, received_transactions))
+
+            elif request.user.groups.filter(name='System Manager').exists() or request.user.groups.filter(name='Employee').exists():
+                manager_group = True
+                if request.user.groups.filter(name='System Manager').exists():
+                    user_transactions = Transaction.objects.all()
+                elif request.user.is_superuser:
+                    user_transactions = Transaction.objects.all()
+                else:
+                    employee_object = Employee.objects.filter(user=request.user)[0]
+                    user_transactions = Transaction.objects.filter(signator=employee_object)
+
+            else:
+                messages.error(request, "You're smart; We're Smarter")
+                return redirect('home')
+            
             filtered_transactions = list()
 
             if filter_type == "user":
@@ -393,10 +409,12 @@ def search(request):
                 messages.error(request, "You're smart. But we're smarter.")
             return render(request, 'website/search.html', 
                 context={
-                    'filtered_transactions': filtered_transactions,
-                    'form': search_form,
+                    'filtered_transactions': filtered_transactions
                 })
-    return redirect('history')
+    if manager_group:
+        return redirect('manage_transaction')
+    else:
+        return redirect('history')
 
 
 @login_required(login_url="/")
