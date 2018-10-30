@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 	'django.contrib.sessions',
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
+	'session_security',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +65,7 @@ MIDDLEWARE = [
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'session_security.middleware.SessionSecurityMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -149,8 +151,13 @@ STATUS_APPROVED = 2
 
 CAPTCH_VERIFICATION = False
 
-RECAPTCHA_SECRET = "6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O"
-RECAPTHCA_SITE_KEY = "6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"
+#RECAPTCHA_SECRET = "6LcqCWwUAAAAAC9-4iofBAthF8pwPHQlSg6n9w4O"
+#RECAPTHCA_SITE_KEY = "6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"
+
+RECAPTCHA_SECRET = "6Lfzu3cUAAAAAG0Lysow0XbwtcGpwI0DQPLjCMQj"
+RECAPTHCA_SITE_KEY = "6Lfzu3cUAAAAANqPx4A5rqz7IFxVuYZ9hQ1pUIVn"
+
+
 
 STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, "static"),
@@ -166,3 +173,10 @@ else:
 # TWO FACTOR
 
 LOGIN_REDIRECT_URL = "home"
+
+
+#SESSION HANDLING
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SECURITY_WARN_AFTER = 250
+SESSION_SECURITY_EXPIRE_AFTER = 300

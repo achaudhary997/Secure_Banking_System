@@ -8,4 +8,5 @@ import website
 urlpatterns = [
     path('nimda_peru_inda', admin.site.urls),
     path('', include('website.urls')),
+    path('session_security', include('session_security.urls')),
 ]
