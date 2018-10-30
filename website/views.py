@@ -150,7 +150,7 @@ def get_acc_choices(user):
     acc_choices = []
 
     for account in accounts:
-        acc_choices.append((str(account.acc_number), str(account.acc_number)))
+        acc_choices.append((str(account.acc_number), str(account.balance), "Account Number: " + str(account.acc_number) + ', Balance: ' + str(account.balance)))
 
     return acc_choices
 
