@@ -30,35 +30,11 @@ class Profile(models.Model):
         return "{}".format(self.user.username)
 
 
-# Have to add inheritence for atleast address or phone number
-
-class Employee(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_employee")
-    class Meta:
-        permissions = (
-            ("delete_transaction", "Delete a transaction"),      
-        )        
-
-    def __str__(self):
-        return "{}".format(self.user.username)
-
-class SystemManager(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_sys_manager")
-
-
-    class Meta:
-        permissions = (
-            ("auth_crit_trans", "Authorize Critical Transaction"),
-        )
-
-    def __str__(self):
-        return "{}".format(self.user.username)
-
 class CustomerIndividual(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="user_indi_customer")
     relationship_manager = models.ForeignKey(
-        Employee, on_delete=models.CASCADE, related_name="indi_customer_rel_man")
+        User, on_delete=models.CASCADE, related_name="indi_customer_rel_man")
     
 
     class Meta:
@@ -76,7 +52,7 @@ class Merchant(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="user_merchant")
     relationship_manager = models.ForeignKey(
-        Employee, on_delete=models.CASCADE, related_name="merchant_rel_man")
+        User, on_delete=models.CASCADE, related_name="merchant_rel_man")
 
     class Meta:
         permissions = (
@@ -122,8 +98,14 @@ class ProfileModificationReq(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True)
-    aadhar_number = models.CharField(
-        default="NONE", max_length=15, blank=False)
+    is_verified_employee = models.IntegerField(default=0)
+    is_verified_admin = models.IntegerField(default=0)
+
+    @classmethod
+    def create(self, user, address, phone_number, is_verified_admin, is_verified_employee):
+        profile = self(user=user, address=address, phone_number=phone_number, is_verified_admin=is_verified_admin, is_verified_employee=is_verified_employee)
+
+        return profile
 
     def __str__(self):
         return "User: " + str(self.user.username)

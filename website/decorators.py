@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import user_passes_test
-from .models import Transaction, Profile, Account, CustomerIndividual, Employee, Merchant
+from .models import Transaction, Profile, Account, CustomerIndividual, Merchant
+
 def group_required(*group_names):
     
     def in_groups(user):

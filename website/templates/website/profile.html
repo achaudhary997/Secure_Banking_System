@@ -5,6 +5,30 @@
 
 {% block content %}
 
+<!-- 
+                 /\/_\_
+                 \/ ))))
+                  ",".//
+                  \%_,O
+                    _||___
+                   /)___/_\
+                  '(_/\_)\/\
+                 />,\\/ / \/\
+                 \o\/==/\  \/o__
+                  (/| /o\\   \,\\-
+                  //  \ | \
+                 /o|  |  \ \
+                / /  / o  \ \
+               / /   \    |  \
+              /  | o /    \ o \
+              \  /   |     \   \
+              / /   /    o /    \
+             / | o  \      )    |
+            /__/\___/_____/\___o/
+                 ='      ='
+What'cha lookin' at!?
+ -->
+
 <div id="contact" class="contact-area">
     <div class="contact-inner new-page-padding">
         <div class="contact-overly"></div>
@@ -19,7 +43,7 @@
             <div class="row">
                 <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="form contact-form">
-                        <form action="{% url 'home' %}" method="post" role="form">
+                        <form action="{% url 'profile' %}" method="post" role="form">
                             {% csrf_token %}
                             {% if form.errors %}
                                 {% for field in forms %}
@@ -46,6 +70,12 @@
                             <div class="form-group">
                                 <input type="text" name="name" class="form-control" disabled placeholder="{{ username }}" />
                             </div>
+                            <!-- <h4>
+                                Account Number:
+                            </h4>
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control" disabled placeholder="{{ account_number }}" />
+                            </div> -->
                             <h4>
                                 Phone Number:
                             </h4>
@@ -62,7 +92,7 @@
                                 Aadhar
                             </h4>
                             <div class="form-group">
-                                <input type="text" name="address" class="form-control" required id="id_address" value="{{ aadhar }}" placeholder="Address"
+                                <input type="text" name="aadhar" class="form-control" required id="id_address" value="{{ aadhar }}" placeholder="Aadhar"
                                 />
                             </div>
                             <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>

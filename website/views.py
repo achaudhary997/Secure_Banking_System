@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm, SearchForm
-from .models import Transaction, Profile, Account, CustomerIndividual, Employee
+from .models import Transaction, Profile, Account, CustomerIndividual, ProfileModificationReq
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
@@ -35,7 +35,7 @@ LOGGING = {
     }
 }
 logging.config.dictConfig(LOGGING)
-logging.info("HELLO")
+# logging.info("HELLO")
 #######################
 
 def handler404(request):
@@ -50,27 +50,43 @@ def login_user(request):
         if request.method == "POST":
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
-                username = login_form.cleaned_data['username']
-                password = login_form.cleaned_data['password']
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                if recaptcha_response:
+                    url = 'https://www.google.com/recaptcha/api/siteverify'
+                    data = {
+                        'secret' : settings.RECAPTCHA_SECRET,
+                        'response' : recaptcha_response
+                    }
+                    r = requests.post(url, data=data)
+                    result = r.json()
+                    if result['success'] or not settings.CAPTCHA_VERIFICATION:
+                        username = login_form.cleaned_data['username']
+                        password = login_form.cleaned_data['password']
 
 
-                user = authenticate(request, username=username, password=password)
+                        user = authenticate(request, username=username, password=password)
 
-                if user is not None:
-                    login(request, user)
-                    if check_otp_setup(user):
-                        return redirect('home')
+                        if user is not None:
+                            login(request, user)
+                            if check_otp_setup(user):
+                                return redirect('home')
+                            else:
+                                return redirect('otp_setup')
+                        else:
+                            messages.error(request, 'Incorrect Username or Password.')
+                            return render(request, 'website/login.html', context={'form': login_form})
                     else:
-                        return redirect('otp_setup')
+                        messages.error(request, 'Captcha not verified')
+                        return render(request, 'website/login.html', context={'form': login_form})
                 else:
-                    messages.error(request, 'Incorrect Username or Password.')
-                return render(request, 'website/login.html', context={'form': login_form})
+                    messages.error(request, 'Captcha not verified')
+                    return render(request, 'website/login.html', context={'form': login_form})
         return render(request, 'website/login.html', context=None)
     else:
         return render(request, 'website/index.html', context=None)
 
 
-@login_required(login_url="/")
+@login_required(login_url="/login.html")
 def otp_setup(request):
     if not check_otp_setup(request.user):
         secret=pyotp.random_base32()
@@ -137,10 +153,9 @@ def register_user(request):
     else:
         return render(request, 'website/index.html')
 
-
+@login_required(login_url="/login.html")
 def logout_user(request):
-    if request.user.is_authenticated:
-        logout(request)
+    logout(request)
     return render(request, 'website/index.html', context=None)
 
 
@@ -154,97 +169,94 @@ def get_acc_choices(user):
 
     return acc_choices
 
+@login_required(login_url="/login.html")
 def transact(request):
     form = TransactionForm
-    if request.user.is_authenticated:
-        if not check_otp_setup(request.user):
-            return redirect('otp_setup')
+    if not check_otp_setup(request.user):
+        return redirect('otp_setup')
 
-        user_accounts = get_acc_choices(request.user)
-        print (user_accounts)
-        if request.method == 'POST':
-            transact_form = TransactionForm(request.POST)
-            if transact_form.is_valid():
-                # logging.info("FORM_VALID")
-                amount = transact_form.cleaned_data['amount']
-                acc_num = transact_form.cleaned_data['acc_num']
-                otp = transact_form.cleaned_data['otp']
-                user_account = transact_form.cleaned_data['user_accounts']
+    user_accounts = get_acc_choices(request.user)
+    if request.method == 'POST':
+        transact_form = TransactionForm(request.POST)
+        if transact_form.is_valid():
+            # logging.info("FORM_VALID")
+            amount = transact_form.cleaned_data['amount']
+            acc_num = transact_form.cleaned_data['acc_num']
+            otp = transact_form.cleaned_data['otp']
+            user_account = transact_form.cleaned_data['user_accounts']
 
-                profile = Profile.objects.filter(user=request.user)[0]
-                totp = pyotp.TOTP(profile.otp_secret)
-                # logging.info("BEFOREOTP")
-                if not totp.verify(otp):
-                    messages.error(
-                        request, 'Tx Declined - Invalid OTP')
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-
-                # print ("DEBUG: HERE")
-                # logging.info("DEBUG: " )D
-
-                recipient_account = Account.objects.filter(
-                                    acc_number=acc_num)[0]
-                #sender_account = Account.objects.filter(
-                #    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
-                sender_account = Account.objects.filter(
-                    acc_number=user_account)[0]
-                signator = CustomerIndividual.objects.filter(
-                    user=request.user)[0].relationship_manager.user
-
-                if recipient_account.user == sender_account.user:
-                    transaction_mode = "within own accounts"
-                else:
-                    transaction_mode = "debit"
-
-                if recipient_account is None:
-                    messages.error(request, 'Tx Declined - Please enter a valid account number.')
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-                if recipient_account == sender_account:
-                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter. You cannot send money to the same account')
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-                if float(amount) <= 0:
-                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-                if float(amount) > sender_account.balance - 10000:
-                    # is_validated = settings.STATUS_DECLINED
-                    messages.error(request, "Tx Declined - Ha! You're smart, we're smarter. This transaction will result in account balance below minimum threshold")
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-                if float(amount) > 100000:
-                    is_validated = settings.STATUS_PENDING
-                else:
-                    if amount < (sender_account.balance - 10000):
-                        sender_account.balance -= amount
-                        recipient_account.balance += amount
-                        sender_account.save()
-                        recipient_account.save()
-                        is_validated = settings.STATUS_APPROVED
-                    else:
-                        #Return error saying atleast 10000 balance should be there
-                        is_validated = settings.STATUS_DECLINED
-                        messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
-                        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-
-                transaction = Transaction.create(   amount=amount, sender=request.user,
-                                                    recipient_account=recipient_account,
-                                                    sender_account=sender_account,
-                                                    signator=signator,
-                                                    is_validated=is_validated,
-                                                    transaction_mode='Debit'
-                                                )
-                transaction.save()
-                return render(request, 'website/index.html')
-            else:
-                # logging.info("FORM_INVALID")
-                # print (transact_form.errors)
-                # print("HEREBOI", str(transact_form.errors))
-                # logging.info(transact_form.errors)
+            profile = Profile.objects.filter(user=request.user)[0]
+            totp = pyotp.TOTP(profile.otp_secret)
+            # logging.info("BEFOREOTP")
+            if not totp.verify(otp):
+                messages.error(
+                    request, 'Tx Declined - Invalid OTP')
                 return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
-        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-    else:
-        return render(request, 'website/index.html')
+            # print ("DEBUG: HERE")
+            # logging.info("DEBUG: " )D
 
-@login_required(login_url="/")
+            recipient_account = Account.objects.filter(
+                                acc_number=acc_num)[0]
+            #sender_account = Account.objects.filter(
+            #    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+            sender_account = Account.objects.filter(
+                acc_number=user_account)[0]
+            signator = CustomerIndividual.objects.filter(
+                user=request.user)[0].relationship_manager.user
+
+            if recipient_account.user == sender_account.user:
+                transaction_mode = "within own accounts"
+            else:
+                transaction_mode = "debit"
+
+            if recipient_account is None:
+                messages.error(request, 'Tx Declined - Please enter a valid account number.')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            if recipient_account == sender_account:
+                messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter. You cannot send money to the same account')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            if float(amount) <= 0:
+                messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            if float(amount) > sender_account.balance - 10000:
+                # is_validated = settings.STATUS_DECLINED
+                messages.error(request, "Tx Declined - Ha! You're smart, we're smarter. This transaction will result in account balance below minimum threshold")
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            if float(amount) > 100000:
+                is_validated = settings.STATUS_PENDING
+            else:
+                if amount < (sender_account.balance - 10000):
+                    sender_account.balance -= amount
+                    recipient_account.balance += amount
+                    sender_account.save()
+                    recipient_account.save()
+                    is_validated = settings.STATUS_APPROVED
+                else:
+                    #Return error saying atleast 10000 balance should be there
+                    is_validated = settings.STATUS_DECLINED
+                    messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
+                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+
+            transaction = Transaction.create(   amount=amount, sender=request.user,
+                                                recipient_account=recipient_account,
+                                                sender_account=sender_account,
+                                                signator=signator,
+                                                is_validated=is_validated,
+                                                transaction_mode='Debit'
+                                            )
+            transaction.save()
+            return render(request, 'website/index.html')
+        else:
+            # logging.info("FORM_INVALID")
+            # print (transact_form.errors)
+            # print("HEREBOI", str(transact_form.errors))
+            # logging.info(transact_form.errors)
+            return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+
+    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+
+@login_required(login_url="/login.html")
 @group_required('System Manager', 'Employee')
 def manage_transaction(request):
     if request.user.groups.filter(name='System Manager').exists():
@@ -287,26 +299,51 @@ def profile_user(request):
     user_address = profile.address
     user_ph = profile.phone_number
     aadhar = profile.aadhar_number
-    user_details = {"username": user_name,
-                    "address": user_address, "contact": user_ph, "aadhar": aadhar}
-    if request.user.is_authenticated:
-        if request.method == 'POST':
-            profile_update_form = ProfileUpdateForm(request.POST)
-            if profile_update_form.is_valid():
-                profile = profile_update_form.save(commit=False)
-                profile.user = request.user
-                profile.save()
-                return render(request, 'website/profile.html', context=user_details)
-            else:
-                return render(request, 'website/profile.html', context=user_details)
-        else:
 
+    user_account_number = Account.objects.filter(user=profile)[0].acc_number
+    user_details = {"username": user_name,
+                    "address": user_address, "contact": user_ph, "aadhar": aadhar, "account_number": user_account_number}
+    print ("Function running")
+    if request.method == 'POST':
+        profile_update_form = ProfileUpdateForm(request.POST)
+        print ("Might not be valid")
+        if profile_update_form.is_valid():
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            print ("YES VALID")
+            if recaptcha_response:
+                url = 'https://www.google.com/recaptcha/api/siteverify'
+                data = {
+                    'secret' : settings.RECAPTCHA_SECRET,
+                    'response' : recaptcha_response
+                }
+                r = requests.post(url, data=data)
+                result = r.json()
+                if result['success'] or not settings.CAPTCHA_VERIFICATION:
+                    profile = ProfileModificationReq(
+                            user=curr_user, 
+                            address=profile_update_form.cleaned_data['address'], 
+                            phone_number=profile_update_form.cleaned_data['contact'], 
+                            is_verified_admin=settings.STATUS_PENDING, 
+                            is_verified_employee=settings.STATUS_PENDING
+                        )
+                    profile.save()
+                    return render(request, 'website/profile.html', context=user_details)
+                else:
+                    messages.error(request, 'Captcha not verified')
+                    user_details["form"] = profile_update_form
+                    return render(request, 'website/profile.html', context={user_details})# user_details})
+            else:
+                messages.error(request, 'Captcha not verified')
+                user_details["form"] = profile_update_form
+                return render(request, 'website/profile.html', context={user_details})# user_details})                   
+        else:
             return render(request, 'website/profile.html', context=user_details)
     else:
-        return render(request, 'website/login.html', context=None)
+        print ("HERE")
+        return render(request, 'website/profile.html', context=user_details)
 
 
-@login_required(login_url="/")
+@login_required(login_url="/login.html")
 @group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
 def history(request):
     if request.user.is_authenticated:
@@ -323,7 +360,7 @@ def history(request):
         for transaction in user_transactions:
             sender_account = transaction.sender_account
             recipient_account = transaction.recipient_account
-            print (sender_account, recipient_account, user_account)
+            # print (sender_account, recipient_account, user_account)
             if recipient_account in user_account and sender_account not in user_account:
                 transaction.transaction_mode = "credit"
 
@@ -348,7 +385,7 @@ def check_valid_int(string):
     except ValueError:
         return False
 
-@login_required(login_url="/")
+@login_required(login_url="/login.html")
 @group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
 def search(request):
     manager_group = False
@@ -450,10 +487,9 @@ def search(request):
         return redirect('history')
 
 
-@login_required(login_url="/")
+@login_required(login_url="/login.html")
 @group_required('Individual Customer', 'Merchant')
 def statement(request):
-
     sent_transactions = Transaction.objects.filter(sender=request.user)
     user_account = Account.objects.filter(
         user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
@@ -496,56 +532,95 @@ def statement(request):
     return response
 
 
-@login_required(login_url="/")
+@login_required(login_url="/login.html")
 @group_required('System Manager', 'Employee')
 def approve(request):
-    if request.user.is_authenticated:
-        if request.method == 'POST':
+    if request.method == 'POST':
+        if request.POST.get("approve_transaction"):
+            transaction_id = request.POST['transaction_id']
+            if not transaction_id.isdigit():
+                messages.error(messages.
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+            try:
+                transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
+            except:
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+            
+            sender_account = transaction.sender_account
+            recipient_account = transaction.recipient_account
+            amount = transaction.amount
+            sender_account.balance -= amount
+            recipient_account.balance += amount
+            sender_account.save()
+            recipient_account.save()
+            transaction.is_validated = settings.STATUS_APPROVED
+            transaction.signator = request.user
+            transaction.save()
+            
+        elif request.POST.get("decline_transaction"):
+            transaction_id = request.POST['transaction_id']
+            if not transaction_id.isdigit():
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+            try:
+                transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
+            except:
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+    
+            transaction.is_validated = settings.STATUS_DECLINED
+            transaction.signator = request.user
+            transaction.save()
 
-            if request.POST.get("approve_transaction"):
-                transaction_id = request.POST['transaction_id']
-                if not transaction_id.isdigit():
-                    messages.error(messages.
-                        request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
-                try:
-                    transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
-                except:
-                    messages.error(
-                        request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
-                
-                sender_account = transaction.sender_account
-                recipient_account = transaction.recipient_account
-                amount = transaction.amount
-                sender_account.balance -= amount
-                recipient_account.balance += amount
-                sender_account.save()
-                recipient_account.save()
-                transaction.is_validated = settings.STATUS_APPROVED
-                transaction.signator = request.user
-                transaction.save()
-                
-            elif request.POST.get("decline_transaction"):
-                transaction_id = request.POST['transaction_id']
-                if not transaction_id.isdigit():
-                    messages.error(
-                        request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
-                try:
-                    transaction = Transaction.objects.filter(transaction_id=transaction_id)[0]
-                except:
-                    messages.error(
-                        request, 'Dont tamper with the request -_-')
-                    return render(request, 'website/manage_transactions.html', context={'messages': messages})
-        
-                transaction.is_validated = settings.STATUS_DECLINED
-                transaction.signator = request.user
-                transaction.save()
-
-            return HttpResponseRedirect('manage_transaction.php')
-        else:
-            return render('website/manage_transactions.html')
+        return HttpResponseRedirect('manage_transaction.php')
     else:
-        return render('website/login.html')
+        return render(request, 'website/manage_transactions.html')
 
+
+@login_required(login_url="/login.html")
+def profile_mod_approve(request):
+    profile_reqs = ProfileModificationReq.objects.all()
+    profile_mods = []
+    if request.user.groups.filter(name='Employee').exists():
+        for req in profile_reqs:
+            if req.is_verified_employee == settings.STATUS_PENDING and CustomerIndividual.objects.filter(user=req.user)[0].relationship_manager == request.user:
+                profile_mods.append(req)
+        return render(request, 'website/manage_profiles.html', context={'profiles' : profile_mods})
+    elif request.user.groups.filter(name='System Administrator').exists():
+        for request in profile_reqs:
+            if request.is_verified_employee == settings.STATUS_APPROVED:
+                profile_mods.append(request)
+        internal_user_accounts = get_internal_accounts(request)
+        return render(request, 
+        'website/account_modification.html', 
+        context={'internal_accounts': internal_user_accounts, 'external_accounts': profile_mods})
+
+
+def get_internal_accounts(request):
+    internal_user_accounts = []
+    all_users = User.objects.all()
+    print (all_users)
+    for user in all_users:
+        if user != request.user:
+            if user.groups.filter(name='Employee').exists():
+                internal_user_accounts.append(
+                    (str(user.pk), str(user.username), str(user.username) + ' - ' + "Employee"))
+            elif user.groups.filter(name='System Manager').exists():
+                internal_user_accounts.append(
+                    (str(user.pk), str(user.username), str(user.username) + ' - ' + "System Manager"))
+    return internal_user_accounts
+
+
+# SYSTEM ADMIN VIEWS
+
+@login_required(login_url="/login.html")
+def account_modify(request):
+    internal_user_accounts = get_internal_accounts(request)
+    
+    print (internal_user_accounts)
+    return render(request, 'website/account_modification.html', context={'internal_accounts': internal_user_accounts})

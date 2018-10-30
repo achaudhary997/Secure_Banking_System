@@ -99,7 +99,7 @@ class RegisterForm(forms.ModelForm):
         return contact
 
     def clean_aadhar(self):
-        aadhar_number = self.clean_data.get('aadhar_number')
+        aadhar_number = self.cleaned_data['aadhar_number']
         if aadhar_number:
             if len(aadhar_number != 12):
                 raise forms.ValidationError("Invalid Aadhar Number")
@@ -107,7 +107,7 @@ class RegisterForm(forms.ModelForm):
             raise forms.ValidationError("Enter Aadhar Number")
         return aadhar_number
 
-class ProfileUpdateForm(forms.ModelForm):
+class ProfileUpdateForm(forms.Form):
     address = forms.CharField(max_length=100, required=True)
     contact = forms.CharField(max_length=15)
     aadhar = forms.CharField(max_length=15)
@@ -118,8 +118,9 @@ class ProfileUpdateForm(forms.ModelForm):
                     'contact',
                     'aadhar')
 
+    
     def clean_contact(self):
-        contact = self.cleaned_data.get('contact')
+        contact = self.cleaned_data['contact']
         if contact:
             if len(contact) > 15 or len(contact) < 9:
                 raise forms.ValidationError("9-15 digits allowed.")
@@ -129,7 +130,7 @@ class ProfileUpdateForm(forms.ModelForm):
         else:
             raise forms.ValidationError("Enter Contact Number.")
         return contact
-
+    
 class SearchForm(forms.Form):
     search_parameter = forms.CharField(required=True, label='', 
                             widget=forms.TextInput(attrs={
