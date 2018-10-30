@@ -47,23 +47,24 @@ class TransactionForm(forms.Form):
     user_accounts = forms.CharField(widget=forms.Select(
         choices=SEARCH_CHOICES))
     
-
-    def clean(self):
+    def clean_acc_num(self):
         acc_num = self.cleaned_data['acc_num']
         if acc_num:
             if acc_num <= 0:
-                # print ("HEREINVALID")
                 raise forms.ValidationError("Invalid Account Number.")
         else:
             raise forms.ValidationError("Enter Account Number.")
         return acc_num
-    
-    # def clean(self):
-    #     transaction = self.cleaned_data
-    #     if Account.objects.get(acc_number=transaction['acc_num']) is None:
-    #         raise forms.ValidationError("Invalid Form")
-    #     return transaction
-    
+
+    def clean(self):
+        transaction = self.cleaned_data
+        try:
+            recipientAccount = Account.objects.get(
+                acc_number=transaction['acc_num'])
+        except:
+            raise forms.ValidationError("Account doesn't exist.")
+        return transaction
+
 
 class RegisterForm(forms.ModelForm):
     username = forms.CharField(max_length=20, required=True)

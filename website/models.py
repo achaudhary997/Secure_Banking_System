@@ -103,7 +103,7 @@ class Transaction(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
     sender_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sender_account")
     recipient_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="account")
-    signator = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="signator") # change to integer and add sys manager signator
+    signator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="signator") # change to integer and add sys manager signator
     timestamp = models.DateTimeField(auto_now_add=True)
     is_validated = models.IntegerField(default=0)
     transaction_mode = models.CharField(default="debit", max_length=20)

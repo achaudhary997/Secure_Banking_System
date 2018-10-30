@@ -105,7 +105,7 @@
                                     <td>{{ transaction.recipient_account.acc_number }}</td>
                                     <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.timestamp }}</td>
-                                    <td>{{ transaction.signator.user.username }}</td>
+                                    <td>{{ transaction.signator.username }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -119,6 +119,49 @@
                         </div>
                     </div>
                 </div>
+            {% endif %}
+             {% if declined_transactions %}
+            <div class="row" style="margin-top: 70px">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Declined Transactions</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Sender Account</th>
+                            <th scope="col">Recepient Account</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Timestamp</th>
+                            <th scope="col">Declined By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in declined_transactions %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ transaction.sender_account.acc_number }}</td>
+                            <td>{{ transaction.recipient_account.acc_number }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>{{ transaction.timestamp }}</td>
+                            <td>{{ transaction.signator.username }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="row" style="margin-top: 100px">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>No Declined Transactions</h2>
+                    </div>
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>
