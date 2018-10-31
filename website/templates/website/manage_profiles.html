@@ -1,4 +1,7 @@
-{% extends 'website/base.html' %} {% block title %}Profile Modifications | {{ website_name }}{% endblock %} {% block content %}
+{% extends 'website/base.html' %} 
+{% block title %}Profile Modifications | {{ website_name }
+}{% endblock %} 
+{% block content %}
 
 <div id="contact" class="contact-area">
     <div class="contact-inner padding-manage-transactions">
@@ -38,7 +41,7 @@
                             <td>
                                 <form method="POST" action="{% url 'approve_profile' %}">
                                     {% csrf_token %}
-                                    <input hidden readonly name="transaction_id" value={{ transaction.transaction_id }} />
+                                    <input hidden readonly name="profile_id" value={{ profile.id }} />
                                     <input class="btn-primary" type="submit" name="approve_profile_mod_request" value="Approve" />
                                     <input class="btn-primary" type="submit" name="decline_profile_mod_request" value="Decline" />
                                 </form>

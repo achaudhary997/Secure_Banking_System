@@ -300,9 +300,8 @@ def profile_user(request):
     user_ph = profile.phone_number
     aadhar = profile.aadhar_number
 
-    user_account_number = Account.objects.filter(user=profile)[0].acc_number
     user_details = {"username": user_name,
-                    "address": user_address, "contact": user_ph, "aadhar": aadhar, "account_number": user_account_number}
+                    "address": user_address, "contact": user_ph, "aadhar": aadhar}
     print ("Function running")
     if request.method == 'POST':
         profile_update_form = ProfileUpdateForm(request.POST)
@@ -592,10 +591,11 @@ def profile_mod_approve(request):
                 profile_mods.append(req)
         return render(request, 'website/manage_profiles.html', context={'profiles' : profile_mods})
     elif request.user.groups.filter(name='System Administrator').exists():
-        for request in profile_reqs:
-            if request.is_verified_employee == settings.STATUS_APPROVED:
-                profile_mods.append(request)
+        for req in profile_reqs:
+            if req.is_verified_employee == settings.STATUS_APPROVED:
+                profile_mods.append(req)
         internal_user_accounts = get_internal_accounts(request)
+        print (profile_mods)
         return render(request, 
         'website/account_modification.html', 
         context={'internal_accounts': internal_user_accounts, 'external_accounts': profile_mods})
@@ -624,3 +624,35 @@ def account_modify(request):
     
     print (internal_user_accounts)
     return render(request, 'website/account_modification.html', context={'internal_accounts': internal_user_accounts})
+
+
+@login_required(login_url="/login.html")
+def approve_profile(request):
+    if request.method == 'POST':
+        print ("inside here")
+        if request.POST.get("approve_profile_mod_request"):
+            profile = ProfileModificationReq.objects.filter(id=request.POST['profile_id'])[0]
+            if request.user.groups.filter(name='Employee').exists():
+                profile.is_verified_employee = settings.STATUS_APPROVED
+                profile.save()
+            elif request.user.groups.filter(name='System Administrator').exists():
+                profile.is_verified_admin = settings.STATUS_APPROVED
+                user_profile = Profile.objects.filter(user=profile.user)[0]
+                user_profile.address = profile.address
+                user_profile.phone_number = profile.phone_number
+                user_profile.save()
+                profile.delete()
+
+
+
+        elif request.POST.get("decline_profile_mod_request"):
+            profile = ProfileModificationReq.objects.filter(
+                id=request.POST['profile_id'])[0]
+            if request.user.groups.filter(name='Employee').exists():
+                profile.delete()
+            elif request.user.groups.filter(name='System Administrator').exists():
+                profile.delete()
+
+        return HttpResponseRedirect('accountmod.php')
+    else:
+        return render(request, 'website/manage_profiles.html')

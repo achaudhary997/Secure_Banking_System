@@ -113,6 +113,9 @@ Come here often? Let's make things official then...
                                   {% elif request.user|has_group:"System Manager" or request.user|has_group:"Employee" or request.user.is_superuser %}
                                       <li><a class="page-scroll" href="{% url 'manage_transaction' %}">Manage Transactions</a></li>
                                   {% endif %}
+                                  {% if request.user|has_group:"Employee" or request.user|has_group:"System Administrator" %}
+                                      <li><a class="page-scroll" href="{% url 'account_mod' %}">Manage Profiles</a></li>
+                                  {% endif %}
                                   {% comment %} <li><a class="page-scroll" href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
                                   {% if not user.is_superuser %}
                                     <li><a class="page-scroll" href="{% url 'profile' %}">Profile</a></li>

@@ -12,7 +12,7 @@ urlpatterns = [
     path('', views.index, name="home"),
 
     #admin ops URLS
-    path('sexyaccmod.fuckoff', views.account_modify, name="acc_mod"),
+    path('accountmod.php', views.profile_mod_approve, name="account_mod"),
 
     #OTP Setup URL
     path('otpsetup.cgi.bin', views.otp_setup, name="otp_setup"),
@@ -31,6 +31,6 @@ urlpatterns = [
     path('search.aspx', views.search, name="search"),
     path('statement.pl', views.statement, name="get_statement"),
     path('approve.jsp', views.approve, name="approve_transaction"),
-    path('approve_profile.bitch', views.profile_mod_approve, name="approve_profile"),
+    path('approveprof.jsp', views.approve_profile, name="approve_profile"),
 
 ]
