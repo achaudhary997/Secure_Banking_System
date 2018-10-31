@@ -9,7 +9,7 @@
             <div class="col-md-12 col-sm-12 col-xs-12" style="padding:20px">
                 <div class="container">
                     <div class="form contact-form">
-                        <form action="{% url 'account_mod' %}" method="post" role="form">
+                        <form action="{% url 'internal_account_mod' %}" method="post" role="form">
                             {% csrf_token %} 
                             {% if form.errors %} 
                                 {% for field in forms %} 
@@ -52,7 +52,7 @@
                         </form>
                     </div>
                     <div class="form contact-form">
-                        <form action="{% url 'account_mod' %}" method="post" role="form">
+                        <form action="{% url 'suspend_account' %}" method="post" role="form">
                             <div class="text-center"><button type="submit">Suspend Account</button></div>
                         </form>
                     </div>

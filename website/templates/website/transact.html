@@ -40,6 +40,31 @@
                                     </div>
                                 {% endfor %}
                             {% endif %}
+                            <div class="container" style="padding:40px">
+                                <h4>Instructions for carrying out transactions.</h4>
+                                <ol>
+                                    <li>
+                                         To carry out a Withdrawal or Deposit, your selected bank account number in the drop down and the account number field must
+                                        have the same value.
+                                    </li>
+                                    <li>
+                                        To carry out a Transfer, your selected bank account number in the drop down and the account number field must have different values.
+                                    </li>
+                                    <li>
+                                        All withdrawals, deposits and transfers above INR 100000 will require approval.
+                                    </li>
+                                    <li>
+                                        There should be a minimum of INR 10000 after any transaction.
+                                    </li>
+                                </ol>
+                                
+                                    
+                                
+                                
+                                 
+                                
+                            </div>
+
                             <h4>
                                 Select User Account:
                             </h4>
@@ -48,6 +73,16 @@
                                     {% for account in user_accounts %}
                                         <option value={{account.0}}>{{account.2}}</option>
                                     {% endfor %}
+                                </select>
+                            </div>
+                            <h4>
+                                Select Transaction Mode:
+                            </h4>
+                            <div class="form-group">
+                                <select name="transaction_mode" id="id_transaction_mode">
+                                    <option value="debit">Withdraw Funds</option>
+                                    <option value="credit">Deposit Funds</option>
+                                    <option value="transfer">Transfer Funds</option>
                                 </select>
                             </div>
                                 
@@ -63,12 +98,26 @@
                             <div class="form-group">
                                 <input type="number" class="form-control" name="acc_num" required id="id_acc_num" placeholder="Account Number" />
                             </div>
+                            
+                            <h4>
+                                Private Key:
+                            </h4>
+                            <div class="form-group">
+                                <textarea name="private_key" cols="40" rows="10" required="" id="id_private_key" placeholder="Enter Private Key"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <textarea style="display:none;" name="encrypted" cols="40" rows="10" required="" id="id_encrypted"></textarea>
+                            </div>
+
                             <h4>
                                 OTP:
                             </h4>
                             <div class="form-group">
                                 <input type="number" class="form-control" name="otp" required id="otp" placeholder="Enter OTP" />
                             </div>
+                            
+
                             <!-- <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div> -->
                             <div class="text-center"><button type="submit">Initiate Transaction</button></div>
                         </form>

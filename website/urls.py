@@ -31,6 +31,8 @@ urlpatterns = [
     path('search.aspx', views.search, name="search"),
     path('statement.pl', views.statement, name="get_statement"),
     path('approve.jsp', views.approve, name="approve_transaction"),
-    path('approveprof.jsp', views.approve_profile, name="approve_profile"),
+    path('approve.lsp', views.approve_profile, name="approve_profile"),
+    path('approve.psp', views.internal_account_mod, name="internal_account_mod"),
+    path('suspend.lol', views.suspend_account, name="suspend_account"),
 
 ]

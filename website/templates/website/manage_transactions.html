@@ -42,6 +42,7 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Sender Account</th>
                                 <th scope="col">Recepient Account</th>
+                                <th scope="col">Transaction Type</th>
                                 <th scope="col">Amount</th>
                                 <th scope="col">Timestamp</th>
                                 <th scope="col">Approve</th>
@@ -53,6 +54,7 @@
                                 <th scope="row">{{ forloop.counter }}</th>
                                 <td>{{ transaction.sender_account.acc_number }}</td>
                                 <td>{{ transaction.recipient_account.acc_number }}</td>
+                                <td>{{ transaction.transaction_mode }}</td>
                                 <td>{{ transaction.amount }}</td>
                                 <td>{{ transaction.timestamp }}</td>
                                 <td>
@@ -92,6 +94,7 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Sender Account</th>
                                 <th scope="col">Recepient Account</th>
+                                <th scope="col">Transaction Type</th>
                                 <th scope="col">Amount</th>
                                 <th scope="col">Timestamp</th>
                                 <th scope="col">Approved By</th>
@@ -103,6 +106,7 @@
                                     <th scope="row">{{ forloop.counter }}</th>
                                     <td>{{ transaction.sender_account.acc_number }}</td>
                                     <td>{{ transaction.recipient_account.acc_number }}</td>
+                                    <td>{{ transaction.transaction_mode }}</td>
                                     <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.timestamp }}</td>
                                     <td>{{ transaction.signator.username }}</td>
@@ -135,6 +139,7 @@
                             <th scope="col">#</th>
                             <th scope="col">Sender Account</th>
                             <th scope="col">Recepient Account</th>
+                            <th scope="col">Transaction Type</th>
                             <th scope="col">Amount</th>
                             <th scope="col">Timestamp</th>
                             <th scope="col">Declined By</th>
@@ -146,6 +151,7 @@
                             <th scope="row">{{ forloop.counter }}</th>
                             <td>{{ transaction.sender_account.acc_number }}</td>
                             <td>{{ transaction.recipient_account.acc_number }}</td>
+                            <td>{{ transaction.transaction_mode }}</td>
                             <td>{{ transaction.amount }}</td>
                             <td>{{ transaction.timestamp }}</td>
                             <td>{{ transaction.signator.username }}</td>

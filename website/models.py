@@ -53,7 +53,7 @@ class Merchant(models.Model):
         User, on_delete=models.CASCADE, related_name="user_merchant")
     relationship_manager = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="merchant_rel_man")
-
+    #5208123
     class Meta:
         permissions = (
             ("authorize_review", "Authorize review of Transactions"),

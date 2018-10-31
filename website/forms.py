@@ -12,6 +12,12 @@ SEARCH_CHOICES = [
     # ('date', 'Date')
 ]
 
+TRANSACTION_CHOICES = [
+    ('debit', 'Withdraw Funds'),
+    ('credit', 'Deposit Funds'),
+    ('transfer', 'Transfer Funds'),
+]
+
 class UserProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
@@ -39,13 +45,18 @@ def get_acc_choices(user):
     return acc_choices
 
 class TransactionForm(forms.Form):
-    
         
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(TransactionForm, self).__init__(*args, **kwargs)
+    
     amount = forms.FloatField(required=True)
     acc_num = forms.IntegerField(required=True)
     otp = forms.IntegerField(required=True)
     user_accounts = forms.CharField(widget=forms.Select(
         choices=SEARCH_CHOICES))
+    transaction_mode = forms.CharField(widget=forms.Select(choices=TRANSACTION_CHOICES))
+    private_key = forms.CharField(widget=forms.Textarea)
     
     def clean_acc_num(self):
         acc_num = self.cleaned_data['acc_num']
@@ -55,6 +66,15 @@ class TransactionForm(forms.Form):
         else:
             raise forms.ValidationError("Enter Account Number.")
         return acc_num
+    #9919890000
+    def clean_user_accounts(self):
+        user_account = self.cleaned_data['user_accounts']
+        try:
+            if Account.objects.filter(user_account)[0].user != Profile.objects.filter(user=self.request.user):
+                raise forms.ValidationError("That account does not belong to you")
+        except:
+            raise forms.ValidationError("That Account Number does not exist")
+        return user_account
 
     def clean(self):
         transaction = self.cleaned_data
@@ -130,7 +150,24 @@ class ProfileUpdateForm(forms.Form):
         else:
             raise forms.ValidationError("Enter Contact Number.")
         return contact
-    
+
+class InternalProfileUpdateForm(forms.Form):
+    user_account = forms.IntegerField(required=True)
+    address = forms.CharField(max_length=100, required=True)
+    contact = forms.CharField(max_length=15, required=True)
+
+    def clean_contact(self):
+        contact = self.cleaned_data['contact']
+        if contact:
+            if len(contact) > 15 or len(contact) < 9:
+                raise forms.ValidationError("9-15 digits allowed.")
+            elif not re.match('^\+?1?\d{9,15}$', contact):
+                raise forms.ValidationError(
+                    "Please Enter a valid contact number.")
+        else:
+            raise forms.ValidationError("Enter Contact Number.")
+        return contact
+
 class SearchForm(forms.Form):
     search_parameter = forms.CharField(required=True, label='', 
                             widget=forms.TextInput(attrs={
