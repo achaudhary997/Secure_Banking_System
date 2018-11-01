@@ -1,0 +1,71 @@
+{% extends 'website/base.html' %} 
+{% block title %}Pending Payments | {{ website_name }}
+{% endblock %} 
+
+{% block content %}
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            {% if messages %} 
+                {% for message in messages %}
+                <div class="alert alert-{{ messaage.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %} 
+            {% endif %}
+            {% if received_payments|length > 0 %}
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Received Payments</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Sender Account</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Timestamp</th>
+                            <th scope="col">Forward to Bank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in received_payments %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ transaction.sender_account.acc_number }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>{{ transaction.timestamp }}</td>
+                            <td>
+                                <form method="POST" action="{% url 'forward_payment' %}">
+                                    {% csrf_token %}
+                                    <input hidden readonly name="transaction_id" value={{ transaction.transaction_id }} />
+                                    <input class="btn-primary" type="submit" name="forward_payment" value="Forward" />
+                                    <input class="btn-primary" type="submit" name="decline_payment" value="Decline" />
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>No Payments Received</h2>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

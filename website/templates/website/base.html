@@ -1,4 +1,4 @@
-{% include 'session_security/all.html' %}
+<!-- {% include 'session_security/all.html' %} -->
 {% load static %}
 {% load has_group %}
 
@@ -12,10 +12,21 @@
   <meta content="" name="description">
 
   <script src="{% static 'website/lib/jquery/jquery.min.js' %}"></script>
+  <script type="text/javascript" src="/static/session_security/script.js"></script>
+  <script type="text/javascript">
+    var sessionSecurity = new yourlabs.SessionSecurity({
+      pingUrl: '/session_securityping/',
+      warnAfter: 250,
+      expireAfter: 300,
+      confirmFormDiscard: "You have unsaved changes in a form of this page."
+    });
+  </script>
 
   <link rel="shortcut icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
   <link rel="icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
   <link rel="stylesheet" href="{% static 'website/css/jQKeyboard.css' %}">
+
+  <link rel="stylesheet" type="text/css" href="/static/session_security/style.css">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,600,700|Raleway:300,400,400i,500,500i,700,800,900" rel="stylesheet">
@@ -46,7 +57,13 @@
 </head>
 
 <body data-spy="scroll" data-target="#navbar-example">
-
+  <div id="session_security_warning" class="session_security" style="display:none" aria-hidden="true" role="dialog">
+    <div class="session_security_overlay"></div>
+    <div class="session_security_modal" role="document" tabindex="-1">
+      <h3>Your session is about to expire</h3>
+      <p>Click or type to extend your session.</p>
+    </div>
+  </div>
   {% comment %} <div id="preloader"></div> {% endcomment %}
   
   <header>
@@ -81,6 +98,9 @@
                                   {% endif %}
                                   {% if request.user|has_group:"Employee" or request.user|has_group:"System Administrator" %}
                                       <li><a class="page-scroll" href="{% url 'account_mod' %}">Manage Profiles</a></li>
+                                  {% endif %}
+                                  {% if request.user|has_group:"Merchant" %}
+                                      <li><a class="page-scroll" href="{% url 'received_payment' %}">Received Payments</a></li>
                                   {% endif %}
                                   {% comment %} <li><a class="page-scroll" href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
                                   {% if not user.is_superuser %}

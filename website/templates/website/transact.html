@@ -16,8 +16,27 @@
                     </div>
                 </div>
             </div>
+            <div class="container" style="padding:40px">
+                <h4>Instructions for carrying out transactions.</h4>
+                <ol>
+                    <li>
+                        To carry out a Withdrawal or Deposit, your selected bank account number in the drop down and the account number field must
+                        have the same value.
+                    </li>
+                    <li>
+                        To carry out a Transfer, your selected bank account number in the drop down and the account number field must have different
+                        values.
+                    </li>
+                    <li>
+                        All withdrawals, deposits and transfers above INR 100000 will require approval.
+                    </li>
+                    <li>
+                        There should be a minimum of INR 10000 after any transaction.
+                    </li>
+                </ol>
+            </div>
             <div class="row">
-                <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="col-md-6 col-sm-6 col-xs-6">
                     <div class="form contact-form">
                         <form action="{% url 'transact' %}" method="post" role="form">
                             {% csrf_token %}
@@ -40,25 +59,7 @@
                                     </div>
                                 {% endfor %}
                             {% endif %}
-                            <div class="container" style="padding:40px">
-                                <h4>Instructions for carrying out transactions.</h4>
-                                <ol>
-                                    <li>
-                                         To carry out a Withdrawal or Deposit, your selected bank account number in the drop down and the account number field must
-                                        have the same value.
-                                    </li>
-                                    <li>
-                                        To carry out a Transfer, your selected bank account number in the drop down and the account number field must have different values.
-                                    </li>
-                                    <li>
-                                        All withdrawals, deposits and transfers above INR 100000 will require approval.
-                                    </li>
-                                    <li>
-                                        There should be a minimum of INR 10000 after any transaction.
-                                    </li>
-                                </ol>
-                            </div>
-
+                        
                             <h4>
                                 Select User Account:
                             </h4>
@@ -116,6 +117,89 @@
                         </form>
                     </div>
                 </div>
+                <!--
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <div class="form contact-form">
+                        <form action="{% url 'transact' %}" method="post" role="form">
+                            {% csrf_token %} 
+                            {% if form.errors %} 
+                                {% for field in forms %} 
+                                    {% if field.errors %} 
+                                        {{ field.errors }} 
+                                    {% endif %} 
+                                {% endfor%} 
+                                {% for error in form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if messages %} 
+                                {% for message in messages %}
+                                <div class="alert alert-{{ messaage.tags }}">
+                                    {{ message }}
+                                </div>
+                                {% endfor %} 
+                            {% endif %}
+                        
+                            <h4>
+                                Select User Account:
+                            </h4>
+                            <div class="form-group">
+                                <select name="user_accounts" id="id_user_accounts">
+                                    {% for account in user_accounts %}
+                                    <option value={{account.0}}>{{account.2}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <h4>
+                                Select Payment:
+                            </h4>
+                            <div class="form-group">
+                                <select name="transaction_mode" id="id_transaction_mode">
+                                    <option value="debit">Electricity</option>
+                                    <option value="credit">Phone Bill</option>
+                                    <option value="transfer">College Fees</option>
+                                </select>
+                            </div>
+                        
+                            <h4>
+                                Amount:
+                            </h4>
+                            <div class="form-group">
+                                <input type="number" name="amount" class="form-control" required id="id_amount" placeholder="Amount" />
+                            </div>
+                            <h4>
+                                Account Number:
+                            </h4>
+                            <div class="form-group">
+                                <input type="number" class="form-control" name="acc_num" required id="id_acc_num" placeholder="Account Number" />
+                            </div>
+                        
+                            <h4>
+                                Public Key:
+                            </h4>
+                            <div class="form-group">
+                                <textarea name="public_key" cols="40" rows="10" required="" id="id_public_key" placeholder="Enter Public Key"></textarea>
+                            </div>
+                        
+                            <div class="form-group">
+                                <input type="hidden" name="encrypted" required id="id_encrypted" />
+                            </div>
+                        
+                            <h4>
+                                OTP:
+                            </h4>
+                            <div class="form-group">
+                                <input type="number" class="form-control" name="otp" required id="otp" placeholder="Enter OTP" />
+                            </div>
+                        
+                            
+                            <div class="text-center"><button type="submit" id="transact_form_submit">Initiate Transaction</button></div>
+                        </form>
+                    </div>
+                </div> 
+                -->
             </div>
         </div>
     </div>

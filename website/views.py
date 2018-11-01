@@ -224,9 +224,9 @@ def myDecrypt(privateKey, ciphertext):
 		return decrypted_message
 	except ValueError:
 		# TODO: Handle this error in the website
-		print ("Key not valid")
+		return settings.INVALID_PRIVATE_KEY
 	except TypeError:
-		print("Ciphertext tampered. Safety Breech!!!")
+		return settings.TAMPERED_PRIVATE_KEY
 
 
 @login_required(login_url="/login.html")
@@ -254,6 +254,14 @@ def transact(request):
             print(encrypted)
             user_private_key = clean_priv_key(request.user.user_profile.private_key)
             decrypted = myDecrypt(user_private_key, encrypted)
+            if decrypted == settings.INVALID_PRIVATE_KEY:
+                messages.error(
+                    request, 'Tx Declined - Key Error')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            elif decrypted == settings.TAMPERED_PRIVATE_KEY:
+                messages.error(
+                    request, 'Tx Declined - Tampering detected.')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
             print(decrypted)
 
 
@@ -269,7 +277,10 @@ def transact(request):
             recipient_account = Account.objects.filter(acc_number=acc_num)[0]
             sender_account = Account.objects.filter(acc_number=user_account)[0]
             signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
-                   
+            
+            sender_is_merchant = request.user.groups.filter(name="Merchant").exists()
+            recipient_is_merchant = recipient_account.user.user.groups.filter(name="Merchant").exists()
+
             if signator:
                 if recipient_account is None:
                     messages.error(request, 'Tx Declined - Please enter a valid account number.')
@@ -288,7 +299,7 @@ def transact(request):
 
 
                 if float(amount) <= 0:
-                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
+                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter. No negative amounts allowed.')
                     return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
 
@@ -297,8 +308,12 @@ def transact(request):
                     return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
 
-                if float(amount) > 100000 or transaction_type == "debit" or transaction_type == "credit":
+                if float(amount) > 100000 and transaction_type == "debit" or transaction_type == "credit":
                     is_validated = settings.STATUS_PENDING
+                    if recipient_is_merchant and sender_account != recipient_account:
+                        is_validated = settings.STATUS_MERCHANT_PENDING
+                elif transaction_type == "transfer" and recipient_is_merchant and sender_account != recipient_account:
+                    is_validated = settings.STATUS_MERCHANT_PENDING
                 else:
                     if amount < (sender_account.balance - 10000):
                         sender_account.balance -= amount
@@ -371,7 +386,7 @@ def profile_user(request):
     profile = request.user.id
     curr_user = User.objects.get(pk=request.user.id)
 
-    profile = curr_user.user_profile.all()[0]
+    profile = Profile.objects.filter(user=curr_user)[0]
     user_name = curr_user.username
     user_address = profile.address
     user_ph = profile.phone_number
@@ -427,7 +442,7 @@ def history(request):
             return redirect('otp_setup')
         user_transactions = Transaction.objects.filter(sender=request.user)
         user_account = Account.objects.filter(
-            user=User.objects.get(pk=request.user.id).user_profile.all()[0])
+            user=Profile.objects.filter(user=request.user)[0])
         user_account_details = []
         for account in user_account:
             user_account_details.append([account.acc_number, account.balance])
@@ -484,7 +499,7 @@ def search(request):
             if request.user.groups.filter(name='Individual Customer').exists() or request.user.groups.filter(name='Merchant').exists():
                 sent_transactions = Transaction.objects.filter(sender=request.user)
                 user_account = Account.objects.filter(
-                                    user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+                    user=Profile.objects.filter(user=request.user)[0])[0]
                 user_account_number = user_account.acc_number
                 user_account_balance = user_account.balance
                 received_transactions = Transaction.objects.filter(recipient_account=user_account)
@@ -568,7 +583,7 @@ def search(request):
     else:
         return redirect('history')
 
-
+#CHECK WHETHER USER_PROFILE.ALL WORKS
 @login_required(login_url="/login.html")
 @group_required('Individual Customer', 'Merchant')
 def statement(request):
@@ -634,20 +649,32 @@ def approve(request):
             sender_account = transaction.sender_account
             recipient_account = transaction.recipient_account
             amount = transaction.amount
+            validation = "valid"
             if transaction.transaction_mode == "transfer":
-                sender_account.balance -= amount
-                recipient_account.balance += amount
-                sender_account.save()
-                recipient_account.save()
+                if sender_account.balance - amount > 10000:
+                    sender_account.balance -= amount
+                    recipient_account.balance += amount
+                    sender_account.save()
+                    recipient_account.save()
+                else:
+                    validation = "invalid"
             elif transaction.transaction_mode == "debit":
-                sender_account.balance -= amount
-                sender_account.save()
-
+                if sender_account.balance - amount > 10000:
+                    sender_account.balance -= amount
+                    sender_account.save()
+                else:
+                    validation = "invalid"
             elif transaction.transaction_mode == "credit":
                 sender_account.balance += amount
                 sender_account.save()
-                
-            transaction.is_validated = settings.STATUS_APPROVED
+            
+            if validation == "invalid":
+                messages.error(messages.
+                               request, 'Approving this request would lead to balance amount less than threshold. Transaction has been automatically declined.')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+                transaction.is_validated = settings.STATUS_DECLINED
+            else:
+                transaction.is_validated = settings.STATUS_APPROVED
             transaction.signator = request.user
             transaction.save()
 
@@ -711,6 +738,7 @@ def get_internal_accounts(request):
 # SYSTEM ADMIN VIEWS
 
 @login_required(login_url="/login.html")
+@group_required('System Administrator')
 def account_modify(request):
     internal_user_accounts = get_internal_accounts(request)
     
@@ -719,6 +747,7 @@ def account_modify(request):
 
 
 @login_required(login_url="/login.html")
+@group_required('System Administrator', 'Employee')
 def approve_profile(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -753,9 +782,10 @@ def approve_profile(request):
         return render(request, 'website/index.html', context=None)
 
 
+@login_required(login_url="/login.html")
+@group_required('System Administrator')
 def internal_account_mod(request):
     if request.user.is_authenticated:
-        print ("herherher")
         form = InternalProfileUpdateForm
         if request.method == 'POST':
             profile_update_form = InternalProfileUpdateForm(request.POST)
@@ -778,6 +808,9 @@ def internal_account_mod(request):
     else:
         return render(request, 'website/index.html', context=None)
 
+
+@login_required(login_url="/login.html")
+@group_required('System Administrator')
 def suspend_account(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -785,4 +818,58 @@ def suspend_account(request):
             user.is_active = False
             user.save()
         return render(request, 'website/manage_profiles.html')
+    return render(request, 'website/index.html', context=None)
+
+
+def get_received_payments(request):
+    transactions = Transaction.objects.filter(is_validated=settings.STATUS_MERCHANT_PENDING)
+    print (transactions)
+    received_payments = []
+
+    user_accounts = Account.objects.filter(user=Profile.objects.filter(user=request.user)[0])
+
+    for transaction in transactions:
+        if transaction.recipient_account in user_accounts:
+            received_payments.append(transaction)
+
+    return received_payments
+
+
+@login_required(login_url="/login.html")
+@group_required('Merchant')
+def received_payment(request):
+    if request.user.is_authenticated:
+        received_payments = get_received_payments(request)
+        print (received_payments)
+        return render(request, 'website/pending_payment.html', context={"received_payments" : received_payments})
+
+    return render(request, 'website/index.html', context=None)
+
+
+
+@login_required(login_url="/login.html")
+@group_required('Merchant')
+def forward_payment(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            transaction_id = request.POST['transaction_id']
+            if not transaction_id.isdigit():
+                messages.error(messages.
+                                request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+            try:
+                transaction = Transaction.objects.filter(
+                    transaction_id=transaction_id)[0]
+            except:
+                messages.error(
+                    request, 'Dont tamper with the request -_-')
+                return render(request, 'website/manage_transactions.html', context={'messages': messages})
+            if request.POST.get("forward_payment"):
+                transaction.is_validated = settings.STATUS_PENDING
+                transaction.save()
+            elif request.POST.get("decline_payment"):
+                transaction.is_validated = settings.STATUS_DECLINED
+                transaction.save()
+        return render(request, 'website/pending_payment.html', context={"received_payments": get_received_payments(request)})
+
     return render(request, 'website/index.html', context=None)

@@ -13,6 +13,9 @@ urlpatterns = [
 
     #admin ops URLS
     path('accountmod.php', views.profile_mod_approve, name="account_mod"),
+    path('approve.lsp', views.approve_profile, name="approve_profile"),
+    path('approve.psp', views.internal_account_mod, name="internal_account_mod"),
+    path('suspend.lol', views.suspend_account, name="suspend_account"),
 
     #OTP Setup URL
     path('otpsetup.cgi.bin', views.otp_setup, name="otp_setup"),
@@ -31,8 +34,8 @@ urlpatterns = [
     path('search.aspx', views.search, name="search"),
     path('statement.pl', views.statement, name="get_statement"),
     path('approve.jsp', views.approve, name="approve_transaction"),
-    path('approve.lsp', views.approve_profile, name="approve_profile"),
-    path('approve.psp', views.internal_account_mod, name="internal_account_mod"),
-    path('suspend.lol', views.suspend_account, name="suspend_account"),
+    path('forward_payment.hmm', views.forward_payment, name="forward_payment"),
+    path('received_payment.hmm', views.received_payment, name="received_payment"),
+
 
 ]
