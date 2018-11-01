@@ -7,11 +7,10 @@
 {% block content %}
 <div id="contact" class="contact-area">
     <div class="contact-inner new-page-padding">
-        <div class="contact-overly"></div>
         <div class="container ">
             <div class="row">
                 <div class="col-md-12 col-sm-12 col-xs-12">
-                    <div class="section-headline text-center">
+                    <div class="section-headline text-center" style="margin-top: -100px;">
                         <h2>Transaction</h2>
                     </div>
                 </div>
@@ -57,12 +56,6 @@
                                         There should be a minimum of INR 10000 after any transaction.
                                     </li>
                                 </ol>
-                                
-                                    
-                                
-                                
-                                 
-                                
                             </div>
 
                             <h4>
@@ -100,14 +93,14 @@
                             </div>
                             
                             <h4>
-                                Private Key:
+                                Public Key:
                             </h4>
                             <div class="form-group">
-                                <textarea name="private_key" cols="40" rows="10" required="" id="id_private_key" placeholder="Enter Private Key"></textarea>
+                                <textarea name="public_key" cols="40" rows="10" required="" id="id_public_key" placeholder="Enter Public Key"></textarea>
                             </div>
 
                             <div class="form-group">
-                                <textarea style="display:none;" name="encrypted" cols="40" rows="10" required="" id="id_encrypted"></textarea>
+                                <input type="hidden" name="encrypted" required id="id_encrypted" />
                             </div>
 
                             <h4>
@@ -116,7 +109,6 @@
                             <div class="form-group">
                                 <input type="number" class="form-control" name="otp" required id="otp" placeholder="Enter OTP" />
                             </div>
-                            
 
                             <!-- <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div> -->
                             <div class="text-center"><button type="submit">Initiate Transaction</button></div>

@@ -1,31 +1,36 @@
 from django.db import models
 from django.contrib.auth.models import User
 import random
+from Crypto.PublicKey import RSA
 
 def get_acc_num():
     # TODO generate number
     return random.sample(range(1000000000, 1600000000), 10)[random.randint(0, 9)]
 
 
+def generate_private_key():
+    return RSA.generate(2048).exportKey().decode("utf-8")
+
+
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/
 # To access the multiple bank detials for a Profile p, just do p.account_set.objects.all() [Need to test this once]
 class Profile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_profile")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_profile")
     address = models.TextField(default="NONE", max_length=100)
     phone_number = models.CharField(default="NONE", max_length=15, blank=True) # validators should be a list
     otp_secret = models.CharField(default="NONE", max_length=16)
+    private_key = models.CharField(default=generate_private_key, max_length=1000000, blank=True)
+    first_login = models.BooleanField(default=True)
 
     # Info for KYC
     aadhar_number = models.CharField(
         default="NONE", max_length=15, blank=False)
 
-    # Assign common permissions for all types of users
-
     class Meta:
         permissions = (
             ("add_transaction", "Create a New Transaction"),
         )
-    
+
     def __str__(self):
         return "{}".format(self.user.username)
 

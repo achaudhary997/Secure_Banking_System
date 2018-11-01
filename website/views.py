@@ -16,6 +16,7 @@ import csv
 import pyotp
 from random import randint
 import pyqrcode
+from Crypto.PublicKey import RSA
 
 # LOGGING ############
 import os, sys
@@ -43,6 +44,27 @@ def handler404(request):
 
 
 def index(request):
+    if request.user.is_authenticated:
+        profile = Profile.objects.get(user_id=request.user.id)
+        if profile.first_login:
+            private_key_string = profile.private_key
+            edited1 = private_key_string
+            if private_key_string[31] != '\n':
+                edited1 = private_key_string[:31] + '\n' + private_key_string[31:]
+            
+            end_index = edited1.find("-----END")
+            edited2 = edited1[:end_index] + '\n' + edited1[end_index:]
+
+            private_key = RSA.importKey(edited2)
+            public_key = private_key.publickey().exportKey().decode("utf-8")
+
+            profile.first_login = False
+            profile.save()
+
+            return render(request, 'website/index.html', context={
+                    "public_key": public_key
+                })
+
     return render(request, 'website/index.html', context=None)
 
 def login_user(request):
@@ -77,14 +99,12 @@ def login_user(request):
 
                         user = authenticate(request, username=username, password=password)
 
-                        print(user)
-
                         if user is not None:
                             login(request, user)
-                            if check_otp_setup(user):
-                                return redirect('home')
-                            else:
+                            if not check_otp_setup(request.user):
                                 return redirect('otp_setup')
+                            else:
+                                return redirect('home')
                         else:
                             messages.error(request, 'Incorrect Username or Password.')
                             return render(request, 'website/login.html', context={'form': login_form})
