@@ -22,20 +22,20 @@ from Crypto.PublicKey import RSA
 import os, sys
 import logging, logging.config
 
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
-        }
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO'
-    }
-}
-logging.config.dictConfig(LOGGING)
+# LOGGING = {
+#     'version': 1,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'stream': sys.stdout,
+#         }
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'DEBUG'
+#     }
+# }
+# logging.config.dictConfig(LOGGING)
 # logging.info("HELLO")
 #######################
 
@@ -145,7 +145,9 @@ def register_user(request):
     if not request.user.is_authenticated:
         if request.method == "POST":
             register_form = RegisterForm(request.POST)
+            print("INNN")
             if register_form.is_valid():
+                print("INNN2")
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -219,6 +221,11 @@ def transact(request):
             otp = transact_form.cleaned_data['otp']
             user_account = transact_form.cleaned_data['user_accounts']
             transaction_type = transact_form.cleaned_data['transaction_mode']
+            public_key = transact_form.cleaned_data['public_key']
+            encrypted = transact_form.cleaned_data['encrypted']
+
+            print(public_key)
+            print(encrypted)
 
             profile = Profile.objects.filter(user=request.user)[0]
             totp = pyotp.TOTP(profile.otp_secret)

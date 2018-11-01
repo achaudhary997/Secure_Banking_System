@@ -1,4 +1,5 @@
 {% extends 'website/base.html' %} 
+{% load static %}
 
 {% block title %}Transact | {{ website_name }}{% endblock %} 
 
@@ -111,7 +112,7 @@
                             </div>
 
                             <!-- <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div> -->
-                            <div class="text-center"><button type="submit">Initiate Transaction</button></div>
+                            <div class="text-center"><button type="submit" id="transact_form_submit">Initiate Transaction</button></div>
                         </form>
                     </div>
                 </div>
@@ -120,4 +121,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'website/js/forge.min.js' %}"></script>
+    <script src="{% static 'website/js/rsa.js' %}"></script>
 {% endblock %}
