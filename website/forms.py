@@ -71,7 +71,9 @@ class TransactionForm(forms.Form):
     def clean_user_accounts(self):
         user_account = self.cleaned_data['user_accounts']
         try:
-            if Account.objects.filter(user_account)[0].user != Profile.objects.filter(user=self.request.user):
+            account = Account.objects.get(acc_number=user_account)
+            profile = self.request.user.user_profile
+            if account.user.id != profile.id:
                 raise forms.ValidationError("That account does not belong to you")
         except:
             raise forms.ValidationError("That Account Number does not exist")

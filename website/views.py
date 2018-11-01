@@ -16,7 +16,10 @@ import csv
 import pyotp
 from random import randint
 import pyqrcode
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA256
+from base64 import b64decode
 
 # LOGGING ############
 import os, sys
@@ -145,9 +148,7 @@ def register_user(request):
     if not request.user.is_authenticated:
         if request.method == "POST":
             register_form = RegisterForm(request.POST)
-            print("INNN")
             if register_form.is_valid():
-                print("INNN2")
                 recaptcha_response = request.POST.get('g-recaptcha-response')
                 if recaptcha_response:
                     url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -204,6 +205,30 @@ def get_acc_choices(user):
 
     return acc_choices
 
+
+def clean_priv_key(private_key_string):
+    edited1 = private_key_string
+    if private_key_string[31] != '\n':
+        edited1 = private_key_string[:31] + '\n' + private_key_string[31:]
+    
+    end_index = edited1.find("-----END")
+    edited2 = edited1[:end_index] + '\n' + edited1[end_index:]
+    return edited2
+
+
+def myDecrypt(privateKey, ciphertext):
+	try:
+		key = RSA.importKey(privateKey)
+		cipher = PKCS1_OAEP.new(key, hashAlgo=SHA256)
+		decrypted_message = cipher.decrypt(b64decode(ciphertext))
+		return decrypted_message
+	except ValueError:
+		# TODO: Handle this error in the website
+		print ("Key not valid")
+	except TypeError:
+		print("Ciphertext tampered. Safety Breech!!!")
+
+
 @login_required(login_url="/login.html")
 @active_account_required
 def transact(request):
@@ -213,8 +238,10 @@ def transact(request):
 
     user_accounts = get_acc_choices(request.user)
     if request.method == 'POST':
+        print("IN")
         transact_form = TransactionForm(request.POST, request=request)
         if transact_form.is_valid():
+            print("IN2")
             # logging.info("FORM_VALID")
             amount = transact_form.cleaned_data['amount']
             acc_num = transact_form.cleaned_data['acc_num']
@@ -224,8 +251,11 @@ def transact(request):
             public_key = transact_form.cleaned_data['public_key']
             encrypted = transact_form.cleaned_data['encrypted']
 
-            print(public_key)
             print(encrypted)
+            user_private_key = clean_priv_key(request.user.user_profile.private_key)
+            decrypted = myDecrypt(user_private_key, encrypted)
+            print(decrypted)
+
 
             profile = Profile.objects.filter(user=request.user)[0]
             totp = pyotp.TOTP(profile.otp_secret)
@@ -240,61 +270,64 @@ def transact(request):
             sender_account = Account.objects.filter(acc_number=user_account)[0]
             signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
                    
-
-            if recipient_account is None:
-                messages.error(request, 'Tx Declined - Please enter a valid account number.')
-                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-            
-            
-            if transaction_type == "transfer":
-                if recipient_account == sender_account:
-                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter. You cannot send money to the same account')
+            if signator:
+                if recipient_account is None:
+                    messages.error(request, 'Tx Declined - Please enter a valid account number.')
                     return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-            else: 
-                if recipient_account != sender_account:
-                    messages.error(
-                        request, 'Account number must be your own for withdrawal/deposit')
+                
+                
+                if transaction_type == "transfer":
+                    if recipient_account == sender_account:
+                        messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter. You cannot send money to the same account')
+                        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+                else: 
+                    if recipient_account != sender_account:
+                        messages.error(
+                            request, 'Account number must be your own for withdrawal/deposit')
+                        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+
+
+                if float(amount) <= 0:
+                    messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
                     return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
 
-            if float(amount) <= 0:
-                messages.error(request, 'Tx Declined - Ha! You\'re smart, we\'re smarter.')
-                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+                if float(amount) > sender_account.balance - 10000:
+                    messages.error(request, "Tx Declined. This transaction will result in account balance below minimum threshold")
+                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
 
-            if float(amount) > sender_account.balance - 10000:
-                messages.error(request, "Tx Declined. This transaction will result in account balance below minimum threshold")
-                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-
-
-            if float(amount) > 100000 or transaction_type == "debit" or transaction_type == "credit":
-                is_validated = settings.STATUS_PENDING
-            else:
-                if amount < (sender_account.balance - 10000):
-                    sender_account.balance -= amount
-                    recipient_account.balance += amount
-                    sender_account.save()
-                    recipient_account.save()
-                    is_validated = settings.STATUS_APPROVED
+                if float(amount) > 100000 or transaction_type == "debit" or transaction_type == "credit":
+                    is_validated = settings.STATUS_PENDING
                 else:
-                    #Return error saying atleast 10000 balance should be there
-                    is_validated = settings.STATUS_DECLINED
-                    messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
-                    return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+                    if amount < (sender_account.balance - 10000):
+                        sender_account.balance -= amount
+                        recipient_account.balance += amount
+                        sender_account.save()
+                        recipient_account.save()
+                        is_validated = settings.STATUS_APPROVED
+                    else:
+                        #Return error saying atleast 10000 balance should be there
+                        is_validated = settings.STATUS_DECLINED
+                        messages.error(request, 'Tx Declined - You must maintain a minimum balance of INR 10,000.')
+                        return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 
-            transaction = Transaction.create(   amount=amount, sender=request.user,
-                                                recipient_account=recipient_account,
-                                                sender_account=sender_account,
-                                                signator=signator,
-                                                is_validated=is_validated,
-                                                transaction_mode=transaction_type
-                                            )
-            transaction.save()
-            return render(request, 'website/index.html')
+                transaction = Transaction.create(   amount=amount, sender=request.user,
+                                                    recipient_account=recipient_account,
+                                                    sender_account=sender_account,
+                                                    signator=signator,
+                                                    is_validated=is_validated,
+                                                    transaction_mode=transaction_type
+                                                )
+                transaction.save()
+                return render(request, 'website/index.html')
+            else:
+                messages.error(request, 'No Relationship Manager assigned. Please contact Admin')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
         else:
             # logging.info("FORM_INVALID")
             # print (transact_form.errors)
-            # print("HEREBOI", str(transact_form.errors))
+            print("HEREBOI", str(transact_form.errors))
             # logging.info(transact_form.errors)
             return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
 

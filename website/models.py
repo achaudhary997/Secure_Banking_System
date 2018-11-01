@@ -9,7 +9,14 @@ def get_acc_num():
 
 
 def generate_private_key():
-    return RSA.generate(2048).exportKey().decode("utf-8")
+    private_key_string = RSA.generate(2048).exportKey().decode("utf-8")
+    edited1 = private_key_string
+    if private_key_string[31] != '\n':
+        edited1 = private_key_string[:31] + '\n' + private_key_string[31:]
+    
+    end_index = edited1.find("-----END")
+    edited2 = edited1[:end_index] + '\n' + edited1[end_index:]
+    return edited2
 
 
 # A single person can have multiple bank accounts though. They can be in the same bank or some external bank :/

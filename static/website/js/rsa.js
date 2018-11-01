@@ -29,13 +29,18 @@ $(document).ready(function(){
 
 		values = JSON.stringify(values);
 		encrypted_text = encryptText(public_key, values);
-		console.log(encrypted_text);
+		// console.log(encrypted_text);
 
 		$('#id_encrypted').val(encrypted_text);
-		return true;
 	});
 });
 /*
+DETAILS
+
+heylo:hello@123
+
+OTP Secret: otpauth://totp/heylo?secret=BBFFYU6PE2YGF6U6&issuer=GoldWomanSachs
+
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA20KEqfwK3+Hh20AtCdhT
 1vSikhcepCarKozXlsiO0wxL7L22RooeJ7zSpALBSc27fGveN5DQ+PP/Fyq3+SiS
