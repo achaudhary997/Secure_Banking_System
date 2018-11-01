@@ -1,19 +1,163 @@
-<html>
-    <head>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
-            crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-            crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-            crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-            crossorigin="anonymous"></script>
-        {% block captcha %}{% endblock %}
+<!-- {% include 'session_security/all.html' %} -->
+{% load static %}
+{% load has_group %}
 
-    </head>
-    <body>
-        <div class="container">
-            {% block content %}{% endblock %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}{% endblock %}</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="" name="keywords">
+  <meta content="" name="description">
+
+  <script src="{% static 'website/lib/jquery/jquery.min.js' %}"></script>
+  <script type="text/javascript" src="/static/session_security/script.js"></script>
+  <script type="text/javascript">
+    var sessionSecurity = new yourlabs.SessionSecurity({
+      pingUrl: '/session_securityping/',
+      warnAfter: 250,
+      expireAfter: 300,
+      confirmFormDiscard: "You have unsaved changes in a form of this page."
+    });
+  </script>
+
+  <link rel="shortcut icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'website/img/favicon.ico' %}" type="image/x-icon">
+  <link rel="stylesheet" href="{% static 'website/css/jQKeyboard.css' %}">
+
+  <link rel="stylesheet" type="text/css" href="/static/session_security/style.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,600,700|Raleway:300,400,400i,500,500i,700,800,900" rel="stylesheet">
+
+  <!-- Jquery Library Google CDN Link -->
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+
+  <!-- Bootstrap CSS File -->
+  <link href="{% static 'website/lib/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+  <!-- Libraries CSS Files -->
+  <link href="{% static 'website/lib/nivo-slider/css/nivo-slider.css' %}" rel="stylesheet">
+  <link href="{% static 'website/lib/owlcarousel/owl.carousel.css' %}" rel="stylesheet">
+  <link href="{% static 'website/lib/owlcarousel/owl.transitions.css' %}" rel="stylesheet">
+  <link href="{% static 'website/lib/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+  <link href="{% static 'website/lib/animate/animate.min.css' %}" rel="stylesheet">
+  <link href="{% static 'website/lib/venobox/venobox.css' %}" rel="stylesheet">
+
+  <!-- Nivo Slider Theme -->
+  <link href="{% static 'website/css/nivo-slider-theme.css' %}" rel="stylesheet">
+
+  <!-- Main Stylesheet File -->
+  <link href="{% static 'website/css/index.css' %}" rel="stylesheet">
+
+  <!-- Responsive Stylesheet File -->
+  <link href="{% static 'website/css/responsive.css' %}" rel="stylesheet">
+  {% block captcha %}{% endblock %}
+</head>
+
+<body data-spy="scroll" data-target="#navbar-example">
+  <div id="session_security_warning" class="session_security" style="display:none" aria-hidden="true" role="dialog">
+    <div class="session_security_overlay"></div>
+    <div class="session_security_modal" role="document" tabindex="-1">
+      <h3>Your session is about to expire</h3>
+      <p>Click or type to extend your session.</p>
+    </div>
+  </div>
+  {% comment %} <div id="preloader"></div> {% endcomment %}
+  
+  <header>
+      <!-- header-area start -->
+      <div id="sticker" class="header-area">
+          <div class="container">
+              <div class="row">
+                  <div class="col-md-12 col-sm-12">
+                      <nav class="navbar navbar-default">
+                          <div class="navbar-header">
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".bs-example-navbar-collapse-1" aria-expanded="false">
+                              <span class="sr-only">Toggle navigation</span>
+                              <span class="icon-bar"></span>
+                              <span class="icon-bar"></span>
+                              <span class="icon-bar"></span>
+                            </button>
+                            <a class="navbar-brand page-scroll sticky-logo" href="{% url 'home' %}">
+                                <h1><span>Gold</span>{{ website_base_name }}</h1>
+                            </a>
+                          </div>
+                          <div class="collapse navbar-collapse main-menu bs-example-navbar-collapse-1" id="navbar-example">
+                            <ul class="nav navbar-nav navbar-right">
+                              <li><a class="page-scroll" href="{% url 'home' %}">Home</a></li>
+                              {% if not user.is_authenticated %}
+                                  <li><a class="page-scroll" href="{% url 'login' %}">Login</a></li>
+                              {% else %}
+                                  {% if request.user|has_group:"Individual Customer" or request.user|has_group:"Merchant" %}
+                                      <li><a class="page-scroll" href="{% url 'transact' %}">Transact</a></li>
+                                      <li><a class="page-scroll" href="{% url 'history' %}">History</a></li>
+                                  {% elif request.user|has_group:"System Manager" or request.user|has_group:"Employee" or request.user.is_superuser %}
+                                      <li><a class="page-scroll" href="{% url 'manage_transaction' %}">Manage Transactions</a></li>
+                                  {% endif %}
+                                  {% if request.user|has_group:"Employee" or request.user|has_group:"System Administrator" %}
+                                      <li><a class="page-scroll" href="{% url 'account_mod' %}">Manage Profiles</a></li>
+                                  {% endif %}
+                                  {% if request.user|has_group:"Merchant" %}
+                                      <li><a class="page-scroll" href="{% url 'received_payment' %}">Received Payments</a></li>
+                                  {% endif %}
+                                  {% comment %} <li><a class="page-scroll" href="{% url 'debit' %}">Debit</a></li> {% endcomment %}
+                                  {% if not user.is_superuser %}
+                                    <li><a class="page-scroll" href="{% url 'profile' %}">Profile</a></li>
+                                  {% endif %}
+                                  <li><a class="page-scroll" href="{% url 'logout' %}">Logout</a></li>
+                              {% endif %}
+                            </ul>
+                          </div>
+                      </nav>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <!-- header-area end -->
+  </header>
+<!-- header end -->
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="footer-area-bottom">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="copyright text-center">
+            <p>
+              &copy; Copyright <strong>{{ website_name }}</strong>. All Rights Reserved
+            </p>
+          </div>
         </div>
-    </body>
+      </div>
+    </div>
+  </div>
+</footer>
+
+  <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+
+  {% block scripts %}{% endblock %}
+
+  <!-- JavaScript Libraries -->
+  <script src="{% static 'website/lib/bootstrap/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'website/lib/owlcarousel/owl.carousel.min.js' %}"></script>
+  <script src="{% static 'website/lib/venobox/venobox.min.js' %}"></script>
+  <script src="{% static 'website/lib/knob/jquery.knob.js' %}"></script>
+  <script src="{% static 'website/lib/wow/wow.min.js' %}"></script>
+  <script src="{% static 'website/lib/parallax/parallax.js' %}"></script>
+  <script src="{% static 'website/lib/easing/easing.min.js' %}"></script>
+  <script src="{% static 'website/lib/nivo-slider/js/jquery.nivo.slider.js' %}"></script>
+  <script src="{% static 'website/lib/appear/jquery.appear.js' %}"></script>
+  <script src="{% static 'website/lib/isotope/isotope.pkgd.min.js' %}"></script>
+  <script src="{% static 'website/js/jQKeyboard.js' %}"></script>
+
+  <script src="{% static 'website/js/main.js' %}"></script>
+  <script>
+    $("input").initKeypad();
+  </script>
+</body>
+
 </html>

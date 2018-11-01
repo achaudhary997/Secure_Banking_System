@@ -1,0 +1,86 @@
+{% extends 'website/base.html' %} 
+{% block title %}Transaction History | {{ website_name }}{% endblock %} {% block content %}
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Transaction History</h2>
+                    </div>
+                </div>
+            </div>
+            {% for account in user_account_details %}
+                <div class="row" style="margin-bottom: 20px">
+                    <h4>Account Number: {{account.0}}</h4>
+                </div>
+                <div class="row" style="margin-bottom: 20px">
+                    <h4>Your Account Balance: INR {{account.1}}</h4>
+                </div>
+            {% endfor %}
+            {% if messages %} 
+                {% for message in messages %}
+                    <div class="alert alert-{{ messaage.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %} 
+            {% endif %}
+            <div class="text-center form contact-form" style="margin-bottom: 50px">
+                <form action="{% url 'search' %}" method="POST">
+                    {% csrf_token %}
+                    {% for field in search_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                    <div class="text-center"><button type="submit">Search</button></div>
+                </form>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Sender Account</th>
+                            <th scope="col">Recipient Account</th>
+                            <th scope="col">Transaction Type</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Timestamp</th>
+                            <th scope="col">Transaction Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in user_transactions %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ transaction.sender_account.acc_number }}</td>
+                            <td>{{ transaction.recipient_account.acc_number }}</td>
+                            <td>{{ transaction.transaction_mode }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>{{ transaction.timestamp }}</td>
+                            {% if transaction.is_validated == status_declined %}
+                                <td>Declined</td>
+                            {% elif transaction.is_validated == status_approved %}
+                                <td>Approved</td>
+                            {% else %}
+                                <td>Pending</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center form contact-form">
+                <form action="{% url 'get_statement' %}">
+                    <button type="submit">Download Account Statement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

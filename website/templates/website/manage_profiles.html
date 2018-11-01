@@ -1,0 +1,68 @@
+{% extends 'website/base.html' %} 
+{% block title %}Profile Modifications | {{ website_name }
+}{% endblock %} 
+{% block content %}
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            {% if messages %} {% for message in messages %}
+            <div class="alert alert-{{ messaage.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %} {% endif %}
+            {% if profiles|length > 0 %}
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Pending Profile Requests</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Contact</th>
+                            <th scope="col">Approve</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in profiles %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ profile.user.username }}</td>
+                            <td>{{ profile.address }}</td>
+                            <td>{{ profile.phone_number }}</td>
+                            <td>
+                                <form method="POST" action="{% url 'approve_profile' %}">
+                                    {% csrf_token %}
+                                    <input hidden readonly name="profile_id" value={{ profile.id }} />
+                                    <input class="btn-primary" type="submit" name="approve_profile_mod_request" value="Approve" />
+                                    <input class="btn-primary" type="submit" name="decline_profile_mod_request" value="Decline" />
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>No Pending Profile Modification Requests</h2>
+                    </div>
+                </div>
+            </div>
+            {% endif %} 
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

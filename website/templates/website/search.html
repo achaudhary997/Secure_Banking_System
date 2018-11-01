@@ -1,0 +1,71 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Search | {{ website_name }}{% endblock %} 
+
+{% block content %}
+<div id="contact" class="contact-area">
+    <div class="contact-inner padding-manage-transactions">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        {% if filtered_transactions %}
+                            <h2>Search Results</h2>
+                        {% else %}
+                            <h2>No Transactions match this query</h2>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% if messages %} 
+                {% for message in messages %}
+                    <div class="alert alert-{{ messaage.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %} 
+            {% endif %}
+            {% if filtered_transactions %}
+                <div class="row">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Sender Account</th>
+                                <th scope="col">Recipient Account</th>
+                                <th scope="col">Transaction Type</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Transaction Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in filtered_transactions %}
+                            <tr>
+                                <th scope="row">{{ forloop.counter }}</th>
+                                <td>{{ transaction.sender_account.acc_number }}</td>
+                                <td>{{ transaction.recipient_account.acc_number }}</td>
+                                {% if user_account_number == transaction.sender_account.acc_number %}
+                                    <td>Debit</td>
+                                {% else %}
+                                    <td>Credit</td>
+                                {% endif %}
+                                <td>{{ transaction.amount }}</td>
+                                <td>{{ transaction.timestamp }}</td>
+                                {% if transaction.is_validated == status_declined %}
+                                    <td>Declined</td>
+                                {% elif transaction.is_validated == status_approved %}
+                                    <td>Approved</td>
+                                {% else %}
+                                    <td>Pending</td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

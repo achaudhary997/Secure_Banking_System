@@ -1,13 +1,69 @@
 {% extends 'website/base.html' %}
+
+{% block title %}Login | {{ website_name }}{% endblock %}
+
 {% block captcha %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
 {% endblock %}
+
 {% block content %}
-    <h2>Login Here</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <div class="g-recaptcha" data-sitekey="6LcqCWwUAAAAAF1t3KaNi20SGXMPJQHIvP8nV0BM"></div>
+
+<div id="contact" class="contact-area">
+    <div class="contact-inner new-page-padding">
+        <div class="contact-overly"></div>
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="section-headline text-center">
+                        <h2>Login</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form contact-form">
+                        <form action="{% url 'login' %}" method="post" role="form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                {% for field in forms %}
+                                    {% if field.errors %}
+                                        {{ field.errors }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ messaage.tags }}">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-group">
+                                <input type="text" name="username" class="form-control" required id="id_username" placeholder="Username" />
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="form-control" name="password" required id="id_password" placeholder="Password" />
+                            </div>
+                            <div class="g-recaptcha text-center" data-sitekey="{{ captcha_site_key }}"></div>
+                            <div class="text-center"><button type="submit">Login</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 
+
+  ooo,    .---.
+ o`  o   /    |\________________
+o`   'oooo()  | ________   _   _)
+`oo   o` \    |/        | | | |
+  `ooo'   `---'         "-" |_|
+
+Hi there! Here's the private key you were hoping to find here.. ;)
+ -->
+
 {% endblock %}
+ 
