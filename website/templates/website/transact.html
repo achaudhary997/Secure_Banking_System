@@ -36,9 +36,9 @@
                 </ol>
             </div>
             <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="form contact-form">
-                        <form action="{% url 'transact' %}" method="post" role="form">
+                        <form action="{% url 'transact' %}" method="post" role="form" id="transact_form">
                             {% csrf_token %}
                             {% if form.errors %}
                                 {% for field in forms %}

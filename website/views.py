@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .forms import LoginForm, RegisterForm, TransactionForm, ProfileUpdateForm, SearchForm, InternalProfileUpdateForm
-from .models import Transaction, Profile, Account, CustomerIndividual, ProfileModificationReq
+from .models import Transaction, Profile, Account, CustomerIndividual, ProfileModificationReq, Merchant
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
@@ -20,6 +20,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from base64 import b64decode
+import json
 
 # LOGGING ############
 import os, sys
@@ -206,6 +207,7 @@ def get_acc_choices(user):
     return acc_choices
 
 
+
 def clean_priv_key(private_key_string):
     edited1 = private_key_string
     if private_key_string[31] != '\n':
@@ -214,6 +216,7 @@ def clean_priv_key(private_key_string):
     end_index = edited1.find("-----END")
     edited2 = edited1[:end_index] + '\n' + edited1[end_index:]
     return edited2
+
 
 
 def myDecrypt(privateKey, ciphertext):
@@ -229,8 +232,17 @@ def myDecrypt(privateKey, ciphertext):
 		return settings.TAMPERED_PRIVATE_KEY
 
 
+def check_valid_fields(decrypted, amount, acc_num, user_account, transaction_type):
+    dec_json = json.loads(decrypted)
+    if amount == float(dec_json['amount']) and str(acc_num) == dec_json['acc_num']:
+        if user_account == dec_json['user_accounts'] and transaction_type == dec_json['transaction_mode']:
+            return True
+    return False
+
+
 @login_required(login_url="/login.html")
 @active_account_required
+@group_required('Individual Customer', 'Merchant')
 def transact(request):
     form = TransactionForm
     if not check_otp_setup(request.user):
@@ -238,22 +250,21 @@ def transact(request):
 
     user_accounts = get_acc_choices(request.user)
     if request.method == 'POST':
-        print("IN")
+        # print("IN")
         transact_form = TransactionForm(request.POST, request=request)
         if transact_form.is_valid():
-            print("IN2")
+            # print("IN2")
             # logging.info("FORM_VALID")
+
             amount = transact_form.cleaned_data['amount']
             acc_num = transact_form.cleaned_data['acc_num']
             otp = transact_form.cleaned_data['otp']
             user_account = transact_form.cleaned_data['user_accounts']
             transaction_type = transact_form.cleaned_data['transaction_mode']
-            public_key = transact_form.cleaned_data['public_key']
-            encrypted = transact_form.cleaned_data['encrypted']
+            encrypted = transact_form.cleaned_data['encrypted'].encode('utf-8')
 
-            print(encrypted)
             user_private_key = clean_priv_key(request.user.user_profile.private_key)
-            decrypted = myDecrypt(user_private_key, encrypted)
+            decrypted = myDecrypt(user_private_key, encrypted).decode('utf-8')
             if decrypted == settings.INVALID_PRIVATE_KEY:
                 messages.error(
                     request, 'Tx Declined - Key Error')
@@ -262,8 +273,11 @@ def transact(request):
                 messages.error(
                     request, 'Tx Declined - Tampering detected.')
                 return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
-            print(decrypted)
-
+            elif not check_valid_fields(decrypted, amount, acc_num, user_account, transaction_type):
+                messages.error(
+                    request, 'Tx Declined - Tampering detected.')
+                return render(request, 'website/transact.html', context={"form": form, "user_accounts": user_accounts})
+            
 
             profile = Profile.objects.filter(user=request.user)[0]
             totp = pyotp.TOTP(profile.otp_secret)
@@ -276,8 +290,11 @@ def transact(request):
 
             recipient_account = Account.objects.filter(acc_number=acc_num)[0]
             sender_account = Account.objects.filter(acc_number=user_account)[0]
-            signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
-            
+            if request.user.groups.filter(name="Individual Customer").exists():
+                signator = CustomerIndividual.objects.filter(user=request.user)[0].relationship_manager
+            elif request.user.groups.filter(name="Merchant").exists():
+                signator = Merchant.objects.filter(user=request.user)[0].relationship_manager
+
             sender_is_merchant = request.user.groups.filter(name="Merchant").exists()
             recipient_is_merchant = recipient_account.user.user.groups.filter(name="Merchant").exists()
 
@@ -381,6 +398,8 @@ def manage_transaction(request):
                             }
                 )
 
+
+@login_required(login_url="/login.html")
 def profile_user(request):
     form = ProfileUpdateForm
     profile = request.user.id
@@ -435,7 +454,7 @@ def profile_user(request):
 
 
 @login_required(login_url="/login.html")
-@group_required('Individual Customer', 'Merchant', 'System Manager', 'Employee')
+@group_required('Individual Customer', 'Merchant')
 def history(request):
     if request.user.is_authenticated:
         if not check_otp_setup(request.user):
@@ -589,11 +608,11 @@ def search(request):
 def statement(request):
     sent_transactions = Transaction.objects.filter(sender=request.user)
     user_account = Account.objects.filter(
-        user=User.objects.get(pk=request.user.id).user_profile.all()[0])[0]
+        user=Profile.objects.filter(user=request.user)[0])[0]
     user_account_number = user_account.acc_number
     user_account_balance = user_account.balance
     received_transactions = Transaction.objects.filter(recipient_account=user_account)
-    user_transactions = list(chain(sent_transactions, received_transactions))
+    user_transactions = list(set(list(chain(sent_transactions, received_transactions))))
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="account_statement.csv"'
@@ -725,7 +744,7 @@ def get_internal_accounts(request):
     all_users = User.objects.all()
     print (all_users)
     for user in all_users:
-        if user != request.user:
+        if user != request.user and user.is_active:
             if user.groups.filter(name='Employee').exists():
                 internal_user_accounts.append(
                     (str(user.pk), str(user.username), str(user.username) + ' - ' + "Employee"))
@@ -814,10 +833,11 @@ def internal_account_mod(request):
 def suspend_account(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            user = request.user
+            userid = request.POST['user_account']
+            user = User.objects.filter(id=userid)[0]
             user.is_active = False
             user.save()
-        return render(request, 'website/manage_profiles.html')
+        return HttpResponseRedirect('accountmod.php')
     return render(request, 'website/index.html', context=None)
 
 

@@ -56,7 +56,6 @@ class TransactionForm(forms.Form):
     user_accounts = forms.CharField(widget=forms.Select(
         choices=SEARCH_CHOICES))
     transaction_mode = forms.CharField(widget=forms.Select(choices=TRANSACTION_CHOICES))
-    public_key = forms.CharField(widget=forms.Textarea)
     encrypted = forms.CharField(widget=forms.HiddenInput(), required=True)
     
     def clean_acc_num(self):

@@ -30,7 +30,12 @@
                                     </div>
                                 {% endfor %} 
                             {% endif %}
-                            <h3>Internal Users</h3>
+                            <div class="section-headline text-center">
+                                <h2>Internal Users</h2>
+                            </div>
+                            <h3>
+                                Users
+                            </h3>
                             <select name="user_account" id="id_user_account">
                                 {% for account in internal_accounts %}
                                     <option value={{account.0}}>{{account.2}}</option>
@@ -52,7 +57,35 @@
                         </form>
                     </div>
                     <div class="form contact-form">
+                        
                         <form action="{% url 'suspend_account' %}" method="post" role="form">
+                             {% csrf_token %} 
+                             {% if form.errors %} 
+                             {% for field in forms %} 
+                             {% if field.errors %} 
+                             {{ field.errors }}
+                              {% endif %} 
+                              {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <strong>{{ error|escape }}</strong>
+                            </div>
+                            {% endfor %}
+                             {% endif %}
+                              {% if messages %} 
+                              {% for message in messages %}
+                            <div class="alert alert-{{ messaage.tags }}">
+                                {{ message }}
+                            </div>
+                            {% endfor %} {% endif %}
+                            <h3>
+                                Users
+                            </h3>
+                            <select name="user_account" id="id_user_account">
+                                {% for account in internal_accounts %}
+                                <option value={{account.0}}>{{account.2}}</option>
+                                {% endfor %}
+                            </select>
                             <div class="text-center"><button type="submit">Suspend Account</button></div>
                         </form>
                     </div>
